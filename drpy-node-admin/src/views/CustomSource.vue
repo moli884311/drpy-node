@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { fileApi } from '../api/file'
+import { adminApi } from '../api/admin'
 import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
 import { useThemeStore } from '../stores/theme'
 
@@ -8,6 +9,7 @@ const themeStore = useThemeStore()
 const loading = ref(false)
 const saving = ref(false)
 const customData = ref({ sites: [], lives: [] })
+const brandName = ref('')
 
 const CUSTOM_JSON_PATH = 'public/sub/custom/moli.json'
 
@@ -19,6 +21,10 @@ const isDarkMode = computed(() => themeStore.isDark)
 
 onMounted(async () => {
   await loadCustomData()
+  try {
+    const cfg = await adminApi.getConfig('brand_name')
+    brandName.value = cfg?.data?.value || '沫离影视'
+  } catch { brandName.value = '沫离影视' }
 })
 
 const loadCustomData = async () => {
@@ -99,6 +105,11 @@ const siteTypeMap = {
 
 const sitesCount = computed(() => customData.value.sites?.length || 0)
 const livesCount = computed(() => customData.value.lives?.length || 0)
+
+const displayName = (name) => {
+  if (!name || !brandName.value) return name
+  return name.replace(/\{brand_name\}/g, brandName.value)
+}
 </script>
 
 <template>
@@ -209,7 +220,7 @@ const livesCount = computed(() => customData.value.lives?.length || 0)
                 {{ typeLabels[site.type] || '源' }}
               </span>
               <div class="min-w-0 flex-1">
-                <h4 class="font-medium text-sm text-gray-900 dark:text-gray-100 truncate" :title="site.name">{{ site.name }}</h4>
+                <h4 class="font-medium text-sm text-gray-900 dark:text-gray-100 truncate" :title="displayName(site.name)">{{ displayName(site.name) }}</h4>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono truncate" :title="site.key">{{ site.key }}</p>
                 <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ siteTypeMap[site.type] || '未知类型' }}</p>
                 <div class="flex flex-wrap gap-1 mt-1.5">
@@ -299,7 +310,7 @@ const livesCount = computed(() => customData.value.lives?.length || 0)
                 </svg>
               </div>
               <div class="min-w-0 flex-1">
-                <h4 class="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{{ live.name }}</h4>
+                <h4 class="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{{ displayName(live.name) }}</h4>
                 <p v-if="live.url" class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{{ live.url }}</p>
               </div>
             </div>
