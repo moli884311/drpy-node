@@ -196,6 +196,7 @@ export function getParsesDict(host) {
             let jx_type = jx_arr.length > 2 ? Number(jx_arr[2]) || 0 : 0; // 解析器类型
             let jx_ua = jx_arr.length > 3 ? jx_arr[3] : 'Mozilla/5.0';   // User-Agent
             let jx_flag = jx_arr.length > 4 ? jx_arr[4] : '';            // 标志位
+            let jx_extra_headers = jx_arr.length > 5 ? jx_arr[5] : '';   // 额外 Header (key:value|key:value)
 
             // 构建解析器对象
             let jx_obj = {
@@ -205,6 +206,15 @@ export function getParsesDict(host) {
                 "header": {
                     "User-Agent": jx_ua
                 },
+            }
+
+            if (jx_extra_headers) {
+                jx_extra_headers.split('|').forEach(h => {
+                    const idx = h.indexOf(':');
+                    if (idx > 0) {
+                        jx_obj.header[h.substring(0, idx).trim()] = h.substring(idx + 1).trim();
+                    }
+                });
             }
 
             // 如果有标志位，添加扩展配置
