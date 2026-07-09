@@ -1150,7 +1150,7 @@ export default (fastify, options, done) => {
                             livesJSON = {lives: customData.lives};
                         }
                         if (customData.parses && Array.isArray(customData.parses) && customData.parses.length > 0) {
-                            parseJSON.parses = [...customData.parses, ...parseJSON.parses];
+                            parseJSON = {parses: customData.parses};
                         }
                     } catch (err) {
                         console.error(`读取自定义JSON解析/直播失败:`, err.message);
