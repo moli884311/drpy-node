@@ -30,7 +30,7 @@ async function lazy(input, params) {
                     timeout: 5000
                 });
                 let url = pjfh(resp, '$..url');
-                if (url && url.startsWith('http')) {
+                if (url && url.startsWith('http') && url.length > 30) {
                     return url;
                 }
             } catch (e) {}
@@ -49,7 +49,7 @@ async function lazy(input, params) {
             if (winner) return 'break';
         },
         param: {}
-    }, 1);
+    }, 10);
 
     return winner || input;
 }
