@@ -7,30 +7,45 @@
 
 ---
 
-## 所有改动
+## 改动总览 (mlcp-drpy)
 
-### 2026-07-09
+### 站点与品牌定制
 
-| 改动说明 | 文件路径 |
-|----------|----------|
-| UI 美化：渐变头部、卡片网格、分类标签，首页焕新 | `public/index.html` |
-| 首页路由改为直接提供 `index.html`，移除 README.md 渲染逻辑 | `controllers/root.js` |
-| 新增 moli 精简订阅码条目（`custom_json` 指向外部 JSON） | `public/sub/sub.json` |
-| 创建 moli 自定义站源数据文件（52 站点 + 7 直播源） | `public/sub/custom/moli.json` |
-| `custom_json` 字段支持：sub 有此字段时直接加载 JSON 站点/直播 | `controllers/config.js` |
-| 站点名称格式化：`豆瓣[官](DR2)` -> `🎬沫离影视┃豆瓣┃[官]` | `controllers/config.js` |
-| 品牌名称全局变量 `brand_name`：默认值"沫离影视"，后台可修改 | `controllers/config.js` |
-| `enable_formatted_names` 控制开关：`1` 启用格式化，`0` 回退原始名称 | `controllers/config.js` |
-| parses/lives 回退逻辑：moli.json 无 parses 时回退到 `parses.conf` + `jx/` 读取 | `controllers/config.js` |
-| Admin 管理面板新增 `brand_name` 和 `enable_formatted_names` 配置字段 | `controllers/admin.js` |
-| 配置面板新增 `brand_name` 和 `enable_formatted_names` 控件 | `drpy-node-admin/src/views/Config.vue` |
-| 新增自定义源管理 API：获取/添加/移除 moli.json 站点 | `controllers/admin/customSourcesController.js` |
-| 注册自定义源路由（GET list / POST add / POST remove） | `controllers/admin.js` |
-| 前端 API 层新增 `getCustomSources`、`addCustomSource`、`removeCustomSource` | `drpy-node-admin/src/api/admin.js` |
-| 源管理页面每个源增加"添加到自定义源"（绿色+）和"从自定义源移除"（红色X）按钮，支持按源文件名匹配增删 `moli.json` | `drpy-node-admin/src/views/Sources.vue` |
-| `formatSiteName` 函数导出为公共方法以供复用 | `controllers/config.js` |
-| 重新构建 admin 管理面板静态产物 | `apps/admin/` |
-| 更新 README.md 项目文档 | `README.md` |
+| 功能 | 说明 | 关键文件 |
+|------|------|----------|
+| 首页 UI 美化 | 渐变色头部 + 卡片式网格布局 + 分类标签，现代化视觉风格 | `public/index.html`, `controllers/root.js` |
+| moli 自定义站源 | 52 个精选站点 + 7 个电视直播源，通过 `sub=moli` 订阅码加载 | `public/sub/sub.json`, `public/sub/custom/moli.json` |
+| 品牌名称全局变量 `brand_name` | 默认"沫离影视"，后台面板可自定义；moli.json 中采用 `{brand_name}` 占位符，运行时动态替换，改一处全站生效 | `controllers/config.js`, `controllers/admin.js` |
+| 站点名称格式化 | `🎬{brand_name}┃平台名┃[标签]` 格式，`enable_formatted_names` 可开关 | `controllers/config.js` |
+| `custom_json` 字段支持 | 订阅码若含 `custom_json` 字段，自动从外部 JSON 加载站点和直播源 | `controllers/config.js` |
+
+### 解析器系统
+
+| 功能 | 说明 | 关键文件 |
+|------|------|----------|
+| 解析接口整合 | 整合 **155 条** VIP 视频解析接口，覆盖 JSON / WEB / 聚合三大类 | `config/parses.conf` |
+| 自建 JS 解析器 | 3 个自维护解析器（168 / 无名 / 江湖），独立实现，不依赖第三方 | `jx/168.js`, `jx/无名.js`, `jx/江湖.js` |
+| JSON 并发解析器 | 重写为沙箱原生 API 实现，并发请求所有 type=1 解析器，竞速取最快返回，自动选择最优线路 | `jx/JSON并发.js` |
+| 解析器合并策略 | `custom_json` 中的解析器**追加**到系统解析器之前，不再覆盖 | `controllers/config.js` |
+
+### Admin 管理面板
+
+| 功能 | 说明 | 关键文件 |
+|------|------|----------|
+| 品牌名称配置 | 控制台可修改 `brand_name`，站点名称实时同步 | `src/views/Config.vue` |
+| 自定义源管理页面 | 自动检测 moli.json 数据，站源 / 直播源分区域展示，内联 Monaco 编辑器分别编辑 sites 和 lives 数组 | `src/views/CustomSource.vue` |
+| 自定义源 API | 后端增删查 moli.json 站点接口，前端 API 层对接 | `controllers/admin/customSourcesController.js`, `src/api/admin.js` |
+| `{brand_name}` 占位符渲染 | 自定义源页面对接后台配置，实时替换占位符显示品牌名 | `src/views/CustomSource.vue` |
+| 侧边栏 + 路由 | 新增"自定义源"菜单项及 `/custom-source` 路由 | `src/components/Sidebar.vue`, `src/router/index.js` |
+| 构建产物 | Admin 面板多次重新构建至 `apps/admin/` | `apps/admin/` |
+
+### 品牌名称使用指南
+
+在后台面板「配置管理」中修改 `brand_name` 变量（默认值：`沫离影视`），保存后重启容器即可全局生效。修改后以下位置将同步更新：
+
+- 配置接口输出中的站点名称（`GET /config/1?sub=moli`）
+- Admin 面板自定义源页面的站点展示
+- 所有通过 `formatSiteName()` 生成的前端标签
 
 ---
 
