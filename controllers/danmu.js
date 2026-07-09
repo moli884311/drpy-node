@@ -57,17 +57,29 @@ async function getDanmuFromOK360(name, episode) {
     try {
         const kw = encodeURIComponent(name);
         const html = await httpGet(`https://api.so.360kan.com/index?force_v=1&kw=${kw}&from=&pageno=1&v_ap=1&tab=all`);
-        if (!html || !html.startsWith('{')) return '';
+        if (!html || !html.startsWith('{')) {
+            console.log(`[danmu] 360kan 请求失败或非JSON: name=${name}`);
+            return '';
+        }
 
         const data = JSON.parse(html).data;
-        if (!data || !data.longData) return '';
+        if (!data || !data.longData) {
+            console.log(`[danmu] 360kan 无 longData: name=${name}`);
+            return '';
+        }
 
         const rows = data.longData.rows;
-        if (!rows || rows.length === 0) return '';
+        if (!rows || rows.length === 0) {
+            console.log(`[danmu] 360kan 无 rows: name=${name}`);
+            return '';
+        }
 
         for (const row of rows) {
             const catName = row.cat_name;
             let playUrl = '';
+            const hasPlaylinks = !!row.playlinks;
+            const hasSeriesPlaylinks = !!(row.seriesPlaylinks && row.seriesPlaylinks.length > 0);
+            console.log(`[danmu] 360kan row: cat=${catName}, hasPlaylinks=${hasPlaylinks}, hasSeriesPlaylinks=${hasSeriesPlaylinks}`);
 
             if (catName === '电影') {
                 const links = row.playlinks;
@@ -104,10 +116,13 @@ async function getDanmuFromOK360(name, episode) {
                 }
             }
 
+            console.log(`[danmu] 360kan 获取到播放链接: ${playUrl}`);
             return playUrl;
         }
+        console.log(`[danmu] 360kan 未找到有效播放链接: name=${name}`);
         return '';
     } catch (e) {
+        console.log(`[danmu] 360kan 异常: ${e.message}`);
         return '';
     }
 }
@@ -182,19 +197,26 @@ export default (fastify, options, done) => {
         const episode = parseInt(req.query.episode || req.query.vodIndex || '1', 10);
         const useColor = req.query.color !== '0';
 
+        console.log(`[danmu] 请求: name=${name}, episode=${episode}`);
+
         if (!name) {
             reply.header('Content-Type', 'application/xml; charset=utf-8');
             return reply.send('<?xml version="1.0" encoding="UTF-8"?>\n<i></i>');
         }
 
         const realName = getRealName(name);
+        console.log(`[danmu] realName=${realName}`);
         let danmakuData = '';
 
         const playUrl = await getDanmuFromOK360(realName, episode);
+        console.log(`[danmu] playUrl=${playUrl || '(空)'}`);
+
         if (playUrl) {
             const jsonResp = await fetchDanmakuJsonFromApi(playUrl);
+            console.log(`[danmu] jsonResp length=${jsonResp ? jsonResp.length : 0}`);
             if (jsonResp) {
                 const entries = parseDanmakuJson(jsonResp);
+                console.log(`[danmu] entries count=${entries.length}`);
                 if (entries.length > 0) {
                     danmakuData = generateXml(entries, useColor);
                 }
