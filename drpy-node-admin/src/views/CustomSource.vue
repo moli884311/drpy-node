@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { adminApi } from '../api/admin'
+import { fileApi } from '../api/file'
 
 const router = useRouter()
 const loading = ref(false)
@@ -18,13 +19,29 @@ const loadCustomData = async () => {
   try {
     const result = await adminApi.getCustomSources()
     const data = result.data || result
-    if (Array.isArray(data)) {
-      customData.value = { sites: [], lives: [] }
-    } else {
+    if (data && !Array.isArray(data) && (data.sites || data.lives)) {
       customData.value = {
         sites: data.sites || [],
         lives: data.lives || []
       }
+      return
+    }
+  } catch (e) {
+    console.warn('getCustomSources API failed, fallback to file read:', e.message)
+  }
+
+  try {
+    const fileResult = await fileApi.readFile(CUSTOM_JSON_PATH)
+    let raw = ''
+    if (fileResult?.content) {
+      raw = fileResult.content
+    } else if (typeof fileResult === 'string') {
+      raw = fileResult
+    }
+    const parsed = JSON.parse(raw)
+    customData.value = {
+      sites: parsed.sites || [],
+      lives: parsed.lives || []
     }
   } catch (e) {
     console.error('Load custom sources error:', e)
