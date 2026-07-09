@@ -140,5 +140,23 @@ export const adminApi = {
 
     async restoreBackup() {
         return client.post('/api/admin/backup/restore');
+    },
+
+    // ==================== 自定义源管理 ====================
+    async getCustomSources() {
+        return client.get('/api/admin/custom-sources');
+    },
+
+    async addCustomSource(sourceFile, sourceType) {
+        return client.post('/api/admin/custom-sources/add', {
+            name: sourceFile,
+            type: sourceType
+        });
+    },
+
+    async removeCustomSource(sourceFile) {
+        return client.post('/api/admin/custom-sources/remove', {
+            name: sourceFile
+        });
     }
 };

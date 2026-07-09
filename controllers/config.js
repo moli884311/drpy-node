@@ -65,7 +65,7 @@ function guessRuleType(baseName, ruleObject) {
     }
 }
 
-function formatSiteName(baseName, brandName) {
+export function formatSiteName(baseName, brandName) {
     let tagMatch = baseName.match(/\[(.+?)\]/);
     let tag = tagMatch ? tagMatch[0] : '';
     let cleanName = tagMatch ? baseName.replace(tag, '').trim() : baseName;

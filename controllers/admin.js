@@ -18,6 +18,7 @@ import * as backupController from './admin/backupController.js';
 import * as pluginsController from './admin/pluginsController.js';
 import * as terminalController from './admin/terminalController.js';
 import * as cryptoController from './admin/cryptoController.js';
+import * as customSourcesController from './admin/customSourcesController.js';
 import { PROJECT_ROOT } from '../utils/pathHelper.js';
 
 // 配置常量
@@ -128,6 +129,11 @@ export default async function adminController(fastify, options) {
     fastify.get('/api/admin/sub/files', subController.getSubFiles);
     fastify.get('/api/admin/sub/file', subController.getSubFileContent);
     fastify.post('/api/admin/sub/file', subController.saveSubFileContent);
+
+    // ==================== 自定义源管理 API ====================
+    fastify.get('/api/admin/custom-sources', customSourcesController.getCustomSources);
+    fastify.post('/api/admin/custom-sources/add', customSourcesController.addCustomSource);
+    fastify.post('/api/admin/custom-sources/remove', customSourcesController.removeCustomSource);
 
     // ==================== 备份恢复 API ====================
     fastify.get('/api/admin/backup/config', backupController.getBackupConfig);
