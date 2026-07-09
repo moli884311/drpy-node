@@ -25,6 +25,7 @@ import unifiedProxyController from './unified-proxy.js';
 import githubController from './github.js';
 import websocketServerController from "./websocketServer.js";
 import adminController from './admin.js';
+import danmuController from './danmu.js';
 
 export const registerRoutes = (fastify, options) => {
     fastify.register(formBody);
@@ -54,6 +55,7 @@ export const registerRoutes = (fastify, options) => {
     fastify.register(unifiedProxyController, options);
     fastify.register(githubController, options);
     fastify.register(adminController, options);
+    fastify.register(danmuController, options);
 };
 
 export const registerWsRoutes = (wsApp, options) => {

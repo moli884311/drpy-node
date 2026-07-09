@@ -267,12 +267,17 @@ export default (fastify, options, done) => {
 
                 // 处理播放逻辑
                 if ('play' in query) {
-                    const result = await withTimeout(
+                    const playResult = await withTimeout(
                         apiEngine.play(modulePath, env, query.flag, query.play),
                         null,
                         `播放接口[${moduleName}]`
                     );
-                    return reply.send(result);
+                    if (!Array.isArray(playResult)) {
+                        if (typeof playResult === 'object' && playResult !== null && !playResult.danmaku && (playResult.url || playResult.parse !== undefined)) {
+                            playResult.danmaku = '/danmu';
+                        }
+                    }
+                    return reply.send(playResult);
                 }
 
                 // 处理分类逻辑
