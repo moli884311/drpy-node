@@ -272,12 +272,18 @@ export default (fastify, options, done) => {
                         null,
                         `播放接口[${moduleName}]`
                     );
-                    if (!Array.isArray(playResult)) {
-                        if (typeof playResult === 'object' && playResult !== null && !playResult.danmaku && (playResult.url || playResult.parse !== undefined)) {
-                            playResult.danmaku = '/danmu';
-                        }
+                    let resultObj = playResult;
+                    let isString = false;
+                    if (typeof playResult === 'string') {
+                        try {
+                            resultObj = JSON.parse(playResult);
+                            isString = true;
+                        } catch (e) {}
                     }
-                    return reply.send(playResult);
+                    if (!Array.isArray(resultObj) && resultObj && typeof resultObj === 'object' && !resultObj.danmaku && (resultObj.url || resultObj.parse !== undefined)) {
+                        resultObj.danmaku = `${requestHost}/danmu`;
+                    }
+                    return reply.send(isString ? JSON.stringify(resultObj) : resultObj);
                 }
 
                 // 处理分类逻辑
