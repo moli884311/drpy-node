@@ -594,7 +594,17 @@
       "quickSearch": 1,
       "title": "AppSk",
       "lang": "hipy",
-      "ext": "{\"host\":\"https://kankelm.cn:2024/appdomain.txt\",\"key\":\"ygcnbcvybqqckwqy\",\"iv\":\"1583560747143708\"}"
+      "ext": ""
+    },
+    {
+      "key": "配置中心",
+      "name": "⚙️{brand_name}┃配置中心",
+      "type": 3,
+      "api": "csp_Config",
+      "searchable": 0,
+      "changeable": 0,
+      "indexs": 0,
+      "style": {"type":"rect","ratio":1.597}
     },
     {
       "key": "hipy_py_2k动漫[AS]",
