@@ -65,10 +65,13 @@ const fetchCustomSources = async () => {
 }
 
 const isInCustom = (source) => {
-  if (source.type === 'js') {
-    return customSourceKeys.value.some(k => k.startsWith('drpy2_') || k.startsWith('drpyS_'))
-  }
-  return customSourceKeys.value.some(k => k.includes(source.name))
+  const baseName = source.name.replace(/\.[^.]+$/, '')
+  return customSourceKeys.value.some(k => {
+    if (source.type === 'js') {
+      return (k.startsWith('drpy2_') || k.startsWith('drpyS_')) && k.includes(baseName)
+    }
+    return k.includes(baseName)
+  })
 }
 
 const addToCustom = async (source) => {
