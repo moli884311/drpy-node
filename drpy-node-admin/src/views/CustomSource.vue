@@ -1,14 +1,21 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { adminApi } from '../api/admin'
 import { fileApi } from '../api/file'
+import { VueMonacoEditor } from '@guolao/vue-monaco-editor'
+import { useThemeStore } from '../stores/theme'
 
-const router = useRouter()
+const themeStore = useThemeStore()
 const loading = ref(false)
+const saving = ref(false)
 const customData = ref({ sites: [], lives: [] })
 
 const CUSTOM_JSON_PATH = 'public/sub/custom/moli.json'
+
+const editingSection = ref(null)
+const editContent = ref('')
+const editOriginal = ref('')
+
+const isDarkMode = computed(() => themeStore.isDark)
 
 onMounted(async () => {
   await loadCustomData()
@@ -16,20 +23,6 @@ onMounted(async () => {
 
 const loadCustomData = async () => {
   loading.value = true
-  try {
-    const result = await adminApi.getCustomSources()
-    const data = result.data || result
-    if (data && !Array.isArray(data) && (data.sites || data.lives)) {
-      customData.value = {
-        sites: data.sites || [],
-        lives: data.lives || []
-      }
-      return
-    }
-  } catch (e) {
-    console.warn('getCustomSources API failed, fallback to file read:', e.message)
-  }
-
   try {
     const fileResult = await fileApi.readFile(CUSTOM_JSON_PATH)
     let raw = ''
@@ -51,19 +44,45 @@ const loadCustomData = async () => {
   }
 }
 
-const editJsonFile = () => {
-  router.push({
-    name: 'source-editor',
-    query: { path: CUSTOM_JSON_PATH }
-  })
+const fullJson = computed(() => {
+  return JSON.stringify(customData.value, null, 2)
+})
+
+const startEdit = (section) => {
+  editingSection.value = section
+  const data = customData.value[section]
+  editContent.value = JSON.stringify(data, null, 2)
+  editOriginal.value = editContent.value
+}
+
+const cancelEdit = () => {
+  editingSection.value = null
+  editContent.value = ''
+  editOriginal.value = ''
+}
+
+const hasChanges = computed(() => editContent.value !== editOriginal.value)
+
+const saveEdit = async () => {
+  if (editingSection.value === null) return
+  saving.value = true
+  try {
+    const parsed = JSON.parse(editContent.value)
+    customData.value[editingSection.value] = parsed
+    await fileApi.writeFile(CUSTOM_JSON_PATH, fullJson.value)
+    editOriginal.value = editContent.value
+    editingSection.value = null
+    editContent.value = ''
+  } catch (e) {
+    alert('保存失败: ' + (e.message || 'JSON 格式错误'))
+  } finally {
+    saving.value = false
+  }
 }
 
 const typeLabels = {
-  1: '源',
-  2: '源',
-  3: 'DR2',
-  4: 'DS',
-  5: 'CatVod',
+  1: '源', 2: '源',
+  3: 'DR2', 4: 'DS', 5: 'CatVod',
 }
 
 const typeColors = {
@@ -75,9 +94,7 @@ const typeColors = {
 }
 
 const siteTypeMap = {
-  3: 'JS (DR2)',
-  4: 'JS (DS) / HIPY',
-  5: 'PHP / CatVod',
+  3: 'JS (DR2)', 4: 'JS (DS) / HIPY', 5: 'PHP / CatVod',
 }
 
 const sitesCount = computed(() => customData.value.sites?.length || 0)
@@ -91,21 +108,17 @@ const livesCount = computed(() => customData.value.lives?.length || 0)
         <div>
           <h2 class="text-xl font-semibold">自定义源管理</h2>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            自动检测 {{ CUSTOM_JSON_PATH }}，管理自定义站点和直播源
+            自动检测 {{ CUSTOM_JSON_PATH }}，分别管理站点和直播源
           </p>
         </div>
-        <button
-          @click="loadCustomData"
-          :disabled="loading"
-          class="btn btn-secondary"
-        >
+        <button @click="loadCustomData" :disabled="loading" class="btn btn-secondary">
           <svg v-if="loading" class="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
           <svg v-else class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
-          刷新
+          刷新检测
         </button>
       </div>
     </div>
@@ -122,69 +135,84 @@ const livesCount = computed(() => customData.value.lives?.length || 0)
         </div>
       </div>
 
+      <!-- === 站源源文件 === -->
       <section>
         <h3 class="text-lg font-medium mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-          站源源文件
+          站源源文件 (sites)
         </h3>
-        <div class="card p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer" @click="editJsonFile">
+
+        <div v-if="editingSection === 'sites'" class="card border-2 border-blue-300 dark:border-blue-700">
+          <div class="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-700 flex items-center justify-between">
+            <span class="text-sm font-medium text-blue-700 dark:text-blue-300">正在编辑 sites 数组</span>
+            <div class="flex gap-2">
+              <button @click="cancelEdit" class="btn btn-secondary text-xs px-3 py-1">取消</button>
+              <button @click="saveEdit" :disabled="saving || !hasChanges" class="btn btn-primary text-xs px-3 py-1">
+                <svg v-if="saving" class="w-3 h-3 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                保存
+              </button>
+            </div>
+          </div>
+          <div class="h-[400px]">
+            <vue-monaco-editor
+              v-model:value="editContent"
+              language="json"
+              :theme="isDarkMode ? 'vs-dark' : 'vs'"
+              :options="{
+                automaticLayout: true,
+                minimap: { enabled: false },
+                fontSize: 13,
+                wordWrap: 'on',
+                scrollBeyondLastLine: false,
+                tabSize: 2
+              }"
+              height="100%"
+            />
+          </div>
+        </div>
+
+        <div v-else class="card p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           <div class="flex items-center gap-3">
             <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <div>
-              <h4 class="font-medium text-gray-900 dark:text-gray-100">moli.json - sites</h4>
-              <p class="text-sm text-gray-500 dark:text-gray-400">drpy-node/{{ CUSTOM_JSON_PATH }}</p>
+              <h4 class="font-medium text-gray-900 dark:text-gray-100">sites 数组</h4>
+              <p class="text-sm text-gray-500 dark:text-gray-400">共 {{ sitesCount }} 个站点 · drpy-node/{{ CUSTOM_JSON_PATH }}</p>
             </div>
           </div>
-          <button class="btn btn-secondary text-sm">
+          <button @click="startEdit('sites')" class="btn btn-secondary text-sm">
             编辑
           </button>
         </div>
-      </section>
 
-      <section>
-        <h3 class="text-lg font-medium mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-          </svg>
-          自定义站点列表 ({{ sitesCount }})
-        </h3>
-
-        <div v-if="loading" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div v-if="loading" class="flex justify-center py-6">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
         </div>
 
-        <div v-else-if="sitesCount === 0" class="card p-8 text-center text-gray-500 dark:text-gray-400">
-          暂无自定义站点，可通过「源管理」页面添加或在 moli.json 中手动编辑
+        <div v-else-if="sitesCount === 0" class="card p-6 text-center text-gray-500 dark:text-gray-400">
+          暂无站点，点击上方「编辑」手动添加或通过「源管理」页面导入
         </div>
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
           <div
             v-for="site in customData.sites"
             :key="site.key"
-            class="card p-4 hover:shadow-md transition-shadow border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
+            class="card p-3 hover:shadow-md transition-shadow border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
           >
             <div class="flex items-start gap-3">
-              <span
-                class="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0"
-                :class="typeColors[site.type] || typeColors[1]"
-              >
+              <span class="px-2 py-0.5 rounded text-xs font-medium flex-shrink-0" :class="typeColors[site.type] || typeColors[1]">
                 {{ typeLabels[site.type] || '源' }}
               </span>
               <div class="min-w-0 flex-1">
-                <h4 class="font-medium text-gray-900 dark:text-gray-100 truncate" :title="site.name">
-                  {{ site.name }}
-                </h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono truncate" :title="site.key">
-                  {{ site.key }}
-                </p>
-                <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  {{ siteTypeMap[site.type] || '未知类型' }}
-                </p>
-                <div class="flex flex-wrap gap-1 mt-2">
+                <h4 class="font-medium text-sm text-gray-900 dark:text-gray-100 truncate" :title="site.name">{{ site.name }}</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono truncate" :title="site.key">{{ site.key }}</p>
+                <p class="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{{ siteTypeMap[site.type] || '未知类型' }}</p>
+                <div class="flex flex-wrap gap-1 mt-1.5">
                   <span v-if="site.searchable" class="px-1.5 py-0.5 text-xs rounded bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">可搜索</span>
                   <span v-if="site.filterable" class="px-1.5 py-0.5 text-xs rounded bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400">可筛选</span>
                   <span v-if="site.quickSearch" class="px-1.5 py-0.5 text-xs rounded bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400">快搜</span>
@@ -195,50 +223,74 @@ const livesCount = computed(() => customData.value.lives?.length || 0)
         </div>
       </section>
 
+      <!-- === 直播源源文件 === -->
       <section>
         <h3 class="text-lg font-medium mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553 2.276A1 1 0 0121 13.382V18.62a1 1 0 01-.447.894L15 21m0-11V4m0 0L9 3m6 1L9 3m0 0l-5.447 2.724A1 1 0 003 6.618V11.38a1 1 0 00.447.894L9 15m0-12v12" />
           </svg>
-          直播源源文件
+          直播源源文件 (lives)
         </h3>
-        <div class="card p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer" @click="editJsonFile">
+
+        <div v-if="editingSection === 'lives'" class="card border-2 border-green-300 dark:border-green-700">
+          <div class="px-4 py-2 bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-700 flex items-center justify-between">
+            <span class="text-sm font-medium text-green-700 dark:text-green-300">正在编辑 lives 数组</span>
+            <div class="flex gap-2">
+              <button @click="cancelEdit" class="btn btn-secondary text-xs px-3 py-1">取消</button>
+              <button @click="saveEdit" :disabled="saving || !hasChanges" class="btn btn-primary text-xs px-3 py-1">
+                <svg v-if="saving" class="w-3 h-3 mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                保存
+              </button>
+            </div>
+          </div>
+          <div class="h-[400px]">
+            <vue-monaco-editor
+              v-model:value="editContent"
+              language="json"
+              :theme="isDarkMode ? 'vs-dark' : 'vs'"
+              :options="{
+                automaticLayout: true,
+                minimap: { enabled: false },
+                fontSize: 13,
+                wordWrap: 'on',
+                scrollBeyondLastLine: false,
+                tabSize: 2
+              }"
+              height="100%"
+            />
+          </div>
+        </div>
+
+        <div v-else class="card p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           <div class="flex items-center gap-3">
             <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <div>
-              <h4 class="font-medium text-gray-900 dark:text-gray-100">moli.json - lives</h4>
-              <p class="text-sm text-gray-500 dark:text-gray-400">drpy-node/{{ CUSTOM_JSON_PATH }}</p>
+              <h4 class="font-medium text-gray-900 dark:text-gray-100">lives 数组</h4>
+              <p class="text-sm text-gray-500 dark:text-gray-400">共 {{ livesCount }} 个直播源 · drpy-node/{{ CUSTOM_JSON_PATH }}</p>
             </div>
           </div>
-          <button class="btn btn-secondary text-sm">
+          <button @click="startEdit('lives')" class="btn btn-secondary text-sm">
             编辑
           </button>
         </div>
-      </section>
 
-      <section>
-        <h3 class="text-lg font-medium mb-4 flex items-center gap-2">
-          <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553 2.276A1 1 0 0121 13.382V18.62a1 1 0 01-.447.894L15 21m0-11V4m0 0L9 3m6 1L9 3m0 0l-5.447 2.724A1 1 0 003 6.618V11.38a1 1 0 00.447.894L9 15m0-12v12" />
-          </svg>
-          自定义直播源列表 ({{ livesCount }})
-        </h3>
-
-        <div v-if="loading" class="flex justify-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        <div v-if="loading" class="flex justify-center py-6">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-600"></div>
         </div>
 
-        <div v-else-if="livesCount === 0" class="card p-8 text-center text-gray-500 dark:text-gray-400">
-          暂无自定义直播源，可在 moli.json 中手动编辑 "lives" 字段添加
+        <div v-else-if="livesCount === 0" class="card p-6 text-center text-gray-500 dark:text-gray-400">
+          暂无直播源，点击上方「编辑」手动添加
         </div>
 
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
           <div
             v-for="live in customData.lives"
             :key="live.name"
-            class="card p-4 hover:shadow-md transition-shadow border border-transparent hover:border-green-200 dark:hover:border-green-800"
+            class="card p-3 hover:shadow-md transition-shadow border border-transparent hover:border-green-200 dark:hover:border-green-800"
           >
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
@@ -247,7 +299,7 @@ const livesCount = computed(() => customData.value.lives?.length || 0)
                 </svg>
               </div>
               <div class="min-w-0 flex-1">
-                <h4 class="font-medium text-gray-900 dark:text-gray-100 truncate">{{ live.name }}</h4>
+                <h4 class="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">{{ live.name }}</h4>
                 <p v-if="live.url" class="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">{{ live.url }}</p>
               </div>
             </div>
