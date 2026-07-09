@@ -7,12 +7,19 @@
 
 ---
 
-## 项目简介
-
-- **服务端 drpy 实现**：全面升级异步写法（`async/await` 重构）
-- **UI 美化与配置精简**：提升使用体验，降低上手难度
-- **开发心路**：从勤快日更，到找工作停更，再到上班当牛马、下班当奶爸，只能趁娃睡着的深夜肝代码。佛系是真佛系，但总算没烂尾
-- **当前进度 100%**，代码已完结
+## 后端新增
+controllers/admin/customSourcesController.js — 三个 API：
+GET /api/admin/custom-sources — 获取 moli.json 中已有站点的 key 列表
+POST /api/admin/custom-sources/add — 读取 spider 源文件 @header 元数据，自动生成符合 moli.json 格式的 site 条目并追加，同时应用 brand_name 和 emoji 格式化名称
+POST /api/admin/custom-sources/remove — 按源文件名匹配并从 moli.json 移除
+controllers/admin.js — 注册以上三条新路由
+controllers/config.js — formatSiteName 改为 export 以便复用
+## 前端改动
+drpy-node-admin/src/api/admin.js — 新增 getCustomSources、addCustomSource、removeCustomSource 三个 API 方法
+drpy-node-admin/src/views/Sources.vue — 每个源卡片左侧新增两个按钮：
+绿色 + 号（不在自定义中时显示）— 点击添加到 moli.json
+红色 X 号（已在自定义中时显示）— 点击从 moli.json 移除
+Admin 面板已重新构建到 apps/admin/
 
 ---
 
