@@ -86,36 +86,6 @@ export default (fastify, options, done) => {
     // 启动JSON监听器，监控规则文件变化
     startJsonWatcher(ENGINES, options.jsonDir);
 
-    const danmuCache = new Map();
-
-    function cacheDanmuInfo(result) {
-        try {
-            const list = result?.list;
-            if (!Array.isArray(list) || list.length === 0) return;
-            const vod = list[0];
-            const vodName = vod.vod_name || '';
-            const playUrl = vod.vod_play_url || '';
-            if (!vodName || !playUrl) return;
-            const groups = playUrl.split('$$$');
-            for (const group of groups) {
-                const items = group.split('#');
-                for (const item of items) {
-                    const idx = item.lastIndexOf('$');
-                    if (idx === -1) continue;
-                    const playUrlPart = item.substring(idx + 1);
-                    if (playUrlPart) {
-                        const epText = item.substring(0, idx);
-                        danmuCache.set(playUrlPart, { vodName, epText });
-                    }
-                }
-            }
-            if (danmuCache.size > 1000) {
-                const keys = [...danmuCache.keys()];
-                for (let i = 0; i < 200; i++) danmuCache.delete(keys[i]);
-            }
-        } catch (e) {}
-    }
-
     /**
      * 主API路由 - 处理视频源的各种操作
      * 支持GET和POST请求，根据query参数执行不同逻辑
@@ -310,17 +280,6 @@ export default (fastify, options, done) => {
                             isString = true;
                         } catch (e) {}
                     }
-                    if (!Array.isArray(resultObj) && resultObj && typeof resultObj === 'object' && !resultObj.danmaku && (resultObj.url || resultObj.parse !== undefined)) {
-                        const cacheEntry = danmuCache.get(query.play);
-                        let danmuUrl = `${requestHost}/danmu`;
-                        if (cacheEntry) {
-                            const params = new URLSearchParams();
-                            params.set('name', cacheEntry.vodName);
-                            if (cacheEntry.epText) params.set('episode', cacheEntry.epText);
-                            danmuUrl += '?' + params.toString();
-                        }
-                        resultObj.danmaku = danmuUrl;
-                    }
                     return reply.send(isString ? JSON.stringify(resultObj) : resultObj);
                 }
 
@@ -357,7 +316,6 @@ export default (fastify, options, done) => {
                         null,
                         `详情接口[${moduleName}]`
                     );
-                    cacheDanmuInfo(result);
                     return reply.send(result);
                 }
 
