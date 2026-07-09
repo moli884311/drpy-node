@@ -9,7 +9,28 @@
 
 ## 所有改动
 
+### 2026-07-09
 
+| 改动说明 | 文件路径 |
+|----------|----------|
+| UI 美化：渐变头部、卡片网格、分类标签，首页焕新 | `public/index.html` |
+| 首页路由改为直接提供 `index.html`，移除 README.md 渲染逻辑 | `controllers/root.js` |
+| 新增 moli 精简订阅码条目（`custom_json` 指向外部 JSON） | `public/sub/sub.json` |
+| 创建 moli 自定义站源数据文件（52 站点 + 7 直播源） | `public/sub/custom/moli.json` |
+| `custom_json` 字段支持：sub 有此字段时直接加载 JSON 站点/直播 | `controllers/config.js` |
+| 站点名称格式化：`豆瓣[官](DR2)` -> `🎬沫离影视┃豆瓣┃[官]` | `controllers/config.js` |
+| 品牌名称全局变量 `brand_name`：默认值"沫离影视"，后台可修改 | `controllers/config.js` |
+| `enable_formatted_names` 控制开关：`1` 启用格式化，`0` 回退原始名称 | `controllers/config.js` |
+| parses/lives 回退逻辑：moli.json 无 parses 时回退到 `parses.conf` + `jx/` 读取 | `controllers/config.js` |
+| Admin 管理面板新增 `brand_name` 和 `enable_formatted_names` 配置字段 | `controllers/admin.js` |
+| 配置面板新增 `brand_name` 和 `enable_formatted_names` 控件 | `drpy-node-admin/src/views/Config.vue` |
+| 新增自定义源管理 API：获取/添加/移除 moli.json 站点 | `controllers/admin/customSourcesController.js` |
+| 注册自定义源路由（GET list / POST add / POST remove） | `controllers/admin.js` |
+| 前端 API 层新增 `getCustomSources`、`addCustomSource`、`removeCustomSource` | `drpy-node-admin/src/api/admin.js` |
+| 源管理页面每个源增加"添加到自定义源"（绿色+）和"从自定义源移除"（红色X）按钮，支持按源文件名匹配增删 `moli.json` | `drpy-node-admin/src/views/Sources.vue` |
+| `formatSiteName` 函数导出为公共方法以供复用 | `controllers/config.js` |
+| 重新构建 admin 管理面板静态产物 | `apps/admin/` |
+| 更新 README.md 项目文档 | `README.md` |
 
 ---
 
@@ -105,34 +126,6 @@
 ### 2026-03-14 更新至 **V1.3.28**
 
 > [点此查看完整更新记录](docs/updateRecord.md)
-
----
-
-## 所有改动
-
-### 2026-07-09
-
-| 改动说明 | 文件路径 |
-|----------|----------|
-| UI 美化：渐变头部、卡片网格、分类标签，首页焕新 | `public/index.html` |
-| 首页路由改为直接提供 `index.html`，移除 README.md 渲染逻辑 | `controllers/root.js` |
-| 新增 moli 精简订阅码条目（`custom_json` 指向外部 JSON） | `public/sub/sub.json` |
-| 创建 moli 自定义站源数据文件（52 站点 + 7 直播源） | `public/sub/custom/moli.json` |
-| `custom_json` 字段支持：sub 有此字段时直接加载 JSON 站点/直播 | `controllers/config.js` |
-| 站点名称格式化：`豆瓣[官](DR2)` -> `🎬沫离影视┃豆瓣┃[官]` | `controllers/config.js` |
-| 品牌名称全局变量 `brand_name`：默认值"沫离影视"，后台可修改 | `controllers/config.js` |
-| `enable_formatted_names` 控制开关：`1` 启用格式化，`0` 回退原始名称 | `controllers/config.js` |
-| parses/lives 回退逻辑：moli.json 无 parses 时回退到 `parses.conf` + `jx/` 读取 | `controllers/config.js` |
-| Admin 管理面板新增 `brand_name` 和 `enable_formatted_names` 配置字段 | `controllers/admin.js` |
-| 配置面板新增 `brand_name` 和 `enable_formatted_names` 控件 | `drpy-node-admin/src/views/Config.vue` |
-| 新增自定义源管理 API：获取/添加/移除 moli.json 站点 | `controllers/admin/customSourcesController.js` |
-| 注册自定义源路由（GET list / POST add / POST remove） | `controllers/admin.js` |
-| 前端 API 层新增 `getCustomSources`、`addCustomSource`、`removeCustomSource` | `drpy-node-admin/src/api/admin.js` |
-| 源管理页面每个源增加"添加到自定义源"（绿色+）和"从自定义源移除"（红色X）按钮，支持按源文件名匹配增删 `moli.json` | `drpy-node-admin/src/views/Sources.vue` |
-| `formatSiteName` 函数导出为公共方法以供复用 | `controllers/config.js` |
-| 重新构建 admin 管理面板静态产物 | `apps/admin/` |
-| 更新 README.md 项目文档 | `README.md` |
-
 ---
 
 ## 注意事项
