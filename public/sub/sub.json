@@ -42,5 +42,13 @@
     "reg": "hipy",
     "mode": 0,
     "status": 1
+  },
+  {
+    "name": "沫离精选",
+    "code": "moli",
+    "reg": ".*",
+    "mode": 0,
+    "status": 1,
+    "custom_json": "public/sub/custom/moli.json"
   }
 ]

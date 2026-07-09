@@ -64,6 +64,8 @@ const configDescriptions = {
   baidu_cookie: '百度 Cookie，用于百度网盘',
   enable_rule_name: '显示规则名称 (0=禁用, 1=启用)',
   must_sub_code: '强制订阅代码 (0=禁用, 1=启用)',
+  brand_name: '品牌名称，用于站点名称前缀替换，可自定义广告文字（默认: 沫离影视）',
+  enable_formatted_names: '启用格式化站点名称 (0=使用原始格式, 1=使用🎬品牌┃站点名┃[标签]格式)',
 
   // Engine Settings
   enable_dr2: '启用 DR2 引擎 (0=禁用, 1=启用)',
@@ -85,8 +87,8 @@ const groups = {
   '视频平台': ['bili_cookie', 'baidu_cookie'],
   'AI 服务': ['spark_ai_authKey', 'deepseek_apiKey', 'kimi_apiKey', 'now_ai', 'sparkBotObject'],
   '代理设置': ['enable_system_proxy', 'PROXY_AUTH', 'play_proxy_mode', 'play_local_proxy_type', 'enable_doh', 'allow_forward', 'allow_ftp_cache_clear', 'allow_webdav_cache_clear'],
-  '引擎设置': ['enable_dr2', 'enable_py', 'enable_php', 'enable_cat', 'enable_old_config', 'enable_self_jx'],
-  '其他设置': ['thread', 'api_pwd', 'link_url', 'enable_link_data', 'enable_link_push', 'enable_link_jar', 'mg_hz', 'show_curl', 'show_req', 'enable_rule_name', 'hide_adult', 'cat_sub_code', 'must_sub_code']
+  '引擎设置': ['enable_dr2', 'enable_py', 'enable_php', 'enable_cat', 'enable_old_config', 'enable_self_jx', 'enable_formatted_names'],
+  '其他设置': ['thread', 'api_pwd', 'link_url', 'enable_link_data', 'enable_link_push', 'enable_link_jar', 'mg_hz', 'show_curl', 'show_req', 'enable_rule_name', 'hide_adult', 'cat_sub_code', 'must_sub_code', 'brand_name']
 }
 
 // All groups including "未分类配置" if any

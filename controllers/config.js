@@ -65,6 +65,30 @@ function guessRuleType(baseName, ruleObject) {
     }
 }
 
+function formatSiteName(baseName, brandName) {
+    let tagMatch = baseName.match(/\[(.+?)\]/);
+    let tag = tagMatch ? tagMatch[0] : '';
+    let cleanName = tagMatch ? baseName.replace(tag, '').trim() : baseName;
+    if (!cleanName) cleanName = baseName;
+
+    let emoji = '🎬';
+    const lower = baseName.toLowerCase();
+    if (lower.includes('[短]')) emoji = '📱';
+    else if (lower.includes('[画]')) emoji = '📖';
+    else if (lower.includes('[书]')) emoji = '📚';
+    else if (lower.includes('[盘]')) emoji = '💾';
+    else if (lower.includes('[搜]')) emoji = '🔍';
+    else if (lower.includes('[漫]')) emoji = '🎌';
+    else if (lower.includes('[儿]')) emoji = '🧒';
+    else if (lower.includes('[虫]')) emoji = '🤖';
+    else if (lower.includes('[戏]')) emoji = '🎭';
+    else if (lower.includes('[优]')) emoji = '⭐';
+    else if (lower.includes('[官]')) emoji = '🎬';
+    else if (lower.includes('[密]')) emoji = '🔞';
+
+    return `${emoji}${brandName}┃${cleanName}┃${tag}`;
+}
+
 /**
  * 生成站点配置JSON数据
  * 扫描各种类型的源文件并生成统一的配置格式
@@ -158,6 +182,8 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
     let link_jar = '';
     let enableRuleName = ENV.get('enable_rule_name', '0') === '1';
     let enableOldConfig = Number(ENV.get('enable_old_config', '0'));
+    let enableFormattedNames = ENV.get('enable_formatted_names', '0') === '1';
+    let brandName = ENV.get('brand_name', '沫离影视');
     let isLoaded = await drpyS.isLoaded();
     let forceHeader = Number(process.env.FORCE_HEADER) || 0;
     let dr2ApiType = Number(process.env.DR2_API_TYPE) || 0; // 0 ds里的api 1壳子内置
@@ -231,12 +257,12 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
                 const isMuban = mubanKeys.includes(baseName);
                 if (baseName === 'push_agent') {
                     let key = 'push_agent';
-                    let name = `${ruleMeta.title}(DS)`;
+                    let name = enableFormattedNames ? formatSiteName(ruleMeta.title, brandName) : `${ruleMeta.title}(DS)`;
                     fileSites.push({key, name});
                 } else if (isMuban && SitesMap.hasOwnProperty(baseName) && Array.isArray(SitesMap[baseName])) {
                     SitesMap[baseName].forEach((it) => {
                         let key = `drpyS_${it.alias}`;
-                        let name = `${it.alias}(DS)`;
+                        let name = enableFormattedNames ? formatSiteName(it.alias, brandName) : `${it.alias}(DS)`;
                         let ext = it.queryObject.type === 'url' ? it.queryObject.params : it.queryStr;
                         if (ext) {
                             ext = jsEncoder.gzip(ext);
@@ -247,7 +273,7 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
                     return
                 } else {
                     let key = `drpyS_${ruleMeta.title}`;
-                    let name = `${ruleMeta.title}(DS)`;
+                    let name = enableFormattedNames ? formatSiteName(ruleMeta.title, brandName) : `${ruleMeta.title}(DS)`;
                     fileSites.push({key, name});
                 }
 
@@ -342,17 +368,17 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
                     let fileSites = [];
                     if (baseName === 'push_agent') {
                         let key = 'push_agent';
-                        let name = `${ruleMeta.title}(DR2)`;
+                        let name = enableFormattedNames ? formatSiteName(ruleMeta.title, brandName) : `${ruleMeta.title}(DR2)`;
                         fileSites.push({key, name});
                     } else if (SitesMap.hasOwnProperty(baseName) && Array.isArray(SitesMap[baseName])) {
                         SitesMap[baseName].forEach((it) => {
                             let key = `drpy2_${it.alias}`;
-                            let name = `${it.alias}(DR2)`;
+                            let name = enableFormattedNames ? formatSiteName(it.alias, brandName) : `${it.alias}(DR2)`;
                             fileSites.push({key, name, queryStr: it.queryStr});
                         });
                     } else {
                         let key = `drpy2_${ruleMeta.title}`;
-                        let name = `${ruleMeta.title}(DR2)`;
+                        let name = enableFormattedNames ? formatSiteName(ruleMeta.title, brandName) : `${ruleMeta.title}(DR2)`;
                         fileSites.push({key, name});
                     }
 
@@ -475,13 +501,13 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
                     const isMuban = mubanKeys.includes(baseName) || /^(APP|getapp3)/.test(baseName);
                     if (baseName === 'push_agent') {
                         let key = 'push_agent';
-                        let name = `${ruleMeta.title}(hipy)`;
+                        let name = enableFormattedNames ? formatSiteName(ruleMeta.title, brandName) : `${ruleMeta.title}(hipy)`;
                         fileSites.push({key, name, ext});
                     } else if (isMuban && SitesMap.hasOwnProperty(baseName) && Array.isArray(SitesMap[baseName])) {
                         // console.log(SitesMap[baseName]);
                         SitesMap[baseName].forEach((it) => {
                             let key = `hipy_py_${it.alias}`;
-                            let name = `${it.alias}(hipy)`;
+                            let name = enableFormattedNames ? formatSiteName(it.alias, brandName) : `${it.alias}(hipy)`;
                             let _ext = it.queryObject.type === 'url' ? it.queryObject.params : it.queryStr;
                             if (_ext && _ext !== it.queryStr) {
                                 _ext = jsEncoder.gzip(_ext);
@@ -497,7 +523,7 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
                         return
                     } else {
                         let key = `hipy_py_${ruleMeta.title}`;
-                        let name = `${ruleMeta.title}(hipy)`;
+                        let name = enableFormattedNames ? formatSiteName(ruleMeta.title, brandName) : `${ruleMeta.title}(hipy)`;
                         fileSites.push({key, name, ext});
                     }
 
@@ -557,7 +583,7 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
 
                     let fileSites = [];
                     let key = `php_${ruleMeta.title}`;
-                    let name = `${ruleMeta.title}(PHP)`;
+                    let name = enableFormattedNames ? formatSiteName(ruleMeta.title, brandName) : `${ruleMeta.title}(PHP)`;
                     fileSites.push({key, name, ext});
 
                     fileSites.forEach((fileSite) => {
@@ -636,12 +662,12 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
                     ext = ext || ruleMeta.ext || '';
                     if (baseName === 'push_agent') {
                         let key = 'push_agent';
-                        let name = `${ruleMeta.title}(cat)`;
+                        let name = enableFormattedNames ? formatSiteName(ruleMeta.title, brandName) : `${ruleMeta.title}(cat)`;
                         fileSites.push({key, name, ext});
                     } else if (SitesMap.hasOwnProperty(baseName) && Array.isArray(SitesMap[baseName])) {
                         SitesMap[baseName].forEach((it) => {
                             let key = `catvod_${it.alias}`;
-                            let name = `${it.alias}(cat)`;
+                            let name = enableFormattedNames ? formatSiteName(it.alias, brandName) : `${it.alias}(cat)`;
                             let _ext = it.queryObject.type === 'url' ? it.queryObject.params : it.queryStr;
                             if (_ext && _ext !== it.queryStr) {
                                 _ext = jsEncoder.gzip(_ext);
@@ -655,7 +681,7 @@ async function generateSiteJSON(options, requestHost, sub, pwd) {
                         });
                     } else {
                         let key = `catvod_${ruleMeta.title}`;
-                        let name = `${ruleMeta.title}(cat)`;
+                        let name = enableFormattedNames ? formatSiteName(ruleMeta.title, brandName) : `${ruleMeta.title}(cat)`;
                         fileSites.push({key, name, ext});
                     }
 
@@ -1048,7 +1074,37 @@ export default (fastify, options, done) => {
             }
 
             // 生成站点配置数据
-            let siteJSON = await generateSiteJSON(options, requestHost, sub, pwd);
+            let siteJSON = {sites: [], spider: ''};
+
+            // 支持自定义JSON源文件
+            if (sub && sub.custom_json) {
+                const customJsonPath = path.join(options.rootDir, sub.custom_json);
+                if (existsSync(customJsonPath)) {
+                    try {
+                        const brandName = ENV.get('brand_name', '沫离影视');
+                        const customData = JSON.parse(readFileSync(customJsonPath, 'utf-8'));
+                        if (customData.sites && Array.isArray(customData.sites)) {
+                            siteJSON.sites = customData.sites.map(site => {
+                                const newSite = {...site};
+                                if (newSite.name && brandName !== '沫离影视') {
+                                    newSite.name = newSite.name.replace(/沫离影视/g, brandName);
+                                }
+                                return newSite;
+                            });
+                        }
+                        if (customData.spider) {
+                            siteJSON.spider = customData.spider;
+                        }
+                        console.log(`从自定义JSON加载站点: ${customJsonPath}, 共 ${siteJSON.sites.length} 个站点`);
+                    } catch (err) {
+                        console.error(`读取自定义JSON失败: ${customJsonPath}`, err.message);
+                    }
+                } else {
+                    console.warn(`自定义JSON文件不存在: ${customJsonPath}`);
+                }
+            } else {
+                siteJSON = await generateSiteJSON(options, requestHost, sub, pwd);
+            }
 
             // 处理healthy参数，过滤失效源
             if (healthy === '1') {
@@ -1080,8 +1136,32 @@ export default (fastify, options, done) => {
             }
 
             // 生成各类配置数据
-            const parseJSON = await generateParseJSON(options.jxDir, requestHost);
-            const livesJSON = generateLivesJSON(requestHost);
+            let parseJSON = {parses: []};
+            let livesJSON = {lives: []};
+
+            if (sub && sub.custom_json) {
+                const customJsonPath = path.join(options.rootDir, sub.custom_json);
+                if (existsSync(customJsonPath)) {
+                    try {
+                        const customData = JSON.parse(readFileSync(customJsonPath, 'utf-8'));
+                        if (customData.lives && Array.isArray(customData.lives)) {
+                            livesJSON = {lives: customData.lives};
+                        }
+                        if (customData.parses && Array.isArray(customData.parses)) {
+                            parseJSON = {parses: customData.parses};
+                        }
+                    } catch (err) {
+                        console.error(`读取自定义JSON解析/直播失败:`, err.message);
+                    }
+                }
+            }
+
+            if (parseJSON.parses.length === 0) {
+                parseJSON = await generateParseJSON(options.jxDir, requestHost);
+            }
+            if (livesJSON.lives.length === 0) {
+                livesJSON = generateLivesJSON(requestHost);
+            }
             const playerJSON = generatePlayerJSON(options.configDir, requestHost);
             // 合并所有配置数据
             const configObj = {sites_count: siteJSON.sites.length, ...playerJSON, ...siteJSON, ...parseJSON, ...livesJSON};

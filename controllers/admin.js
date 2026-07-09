@@ -74,7 +74,9 @@ const FULL_ENV_TEMPLATE = {
     "cat_sub_code": "all",
     "must_sub_code": "0",
     "bili_cookie": "",
-    "mg_hz": "4"
+    "mg_hz": "4",
+    "brand_name": "沫离影视",
+    "enable_formatted_names": "1"
 };
 
 // 导出路由配置
