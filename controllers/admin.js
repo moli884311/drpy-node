@@ -24,6 +24,18 @@ import { PROJECT_ROOT } from '../utils/pathHelper.js';
 // 配置常量
 const CONFIG_PATH = path.join(PROJECT_ROOT, 'config/env.json');
 
+// drpy -> JAR cookie 字段映射
+const COOKIE_MAP = {
+    baidu_cookie: 'baidu',
+    quark_cookie: 'quark',
+    uc_cookie: 'uc',
+    uc_token_cookie: 'uc_tv',
+    bili_cookie: 'bili',
+    ali_token: 'ali',
+    cloud_cookie: 'cloud189',
+    pan123_cookie: 'cloud123',
+};
+
 const FULL_ENV_TEMPLATE = {
     "ali_token": "",
     "ali_refresh_token": "",
@@ -172,6 +184,9 @@ export default async function adminController(fastify, options) {
             }
         });
     }
+
+    // JAR 自动获取 cookie 接口 (公开，无认证)
+    fastify.get('/jar-cookie', jarCookieHandler);
 }
 
 // ==================== 辅助函数 ====================
@@ -319,6 +334,30 @@ async function getRoutesInfo(req, reply) {
             file: 'controllers/index.js',
             registered_controllers: registered
         });
+    } catch (e) {
+        reply.code(500).send({ error: e.message });
+    }
+}
+
+// JAR cookie 导出处理函数
+async function jarCookieHandler(req, reply) {
+    try {
+        if (!await fs.pathExists(CONFIG_PATH)) {
+            return reply.send({});
+        }
+        const config = JSON.parse(await fs.readFile(CONFIG_PATH, 'utf-8'));
+        const result = {};
+        for (const [envKey, jarKey] of Object.entries(COOKIE_MAP)) {
+            const val = config[envKey];
+            if (val && typeof val === 'string' && val.trim()) {
+                result[jarKey] = val;
+            }
+        }
+        // 迅雷特殊处理
+        if (config.xun_username && config.xun_password) {
+            result.xunlei = `${config.xun_username}:${config.xun_password}`;
+        }
+        return reply.send(result);
     } catch (e) {
         reply.code(500).send({ error: e.message });
     }
