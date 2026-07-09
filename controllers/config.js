@@ -1083,14 +1083,30 @@ export default (fastify, options, done) => {
                     try {
                         const brandName = ENV.get('brand_name', '沫离影视');
                         const customData = JSON.parse(readFileSync(customJsonPath, 'utf-8'));
-                        if (customData.sites && Array.isArray(customData.sites)) {
-                            siteJSON.sites = customData.sites.map(site => {
-                                const newSite = {...site};
-                                if (newSite.name) {
-                                    newSite.name = newSite.name.replace(/\{brand_name\}/g, brandName);
+
+                        // 递归替换对象中所有 {ENV_KEY} 占位符
+                        function replaceEnvPlaceholders(value) {
+                            if (typeof value === 'string') {
+                                return value.replace(/\{(\w+)\}/g, (match, key) => {
+                                    if (key === 'brand_name') return brandName;
+                                    return ENV.get(key, '');
+                                });
+                            }
+                            if (Array.isArray(value)) {
+                                return value.map(v => replaceEnvPlaceholders(v));
+                            }
+                            if (value && typeof value === 'object') {
+                                const result = {};
+                                for (const [k, v] of Object.entries(value)) {
+                                    result[k] = replaceEnvPlaceholders(v);
                                 }
-                                return newSite;
-                            });
+                                return result;
+                            }
+                            return value;
+                        }
+
+                        if (customData.sites && Array.isArray(customData.sites)) {
+                            siteJSON.sites = customData.sites.map(site => replaceEnvPlaceholders(site));
                         }
                         if (customData.spider) {
                             siteJSON.spider = customData.spider;
