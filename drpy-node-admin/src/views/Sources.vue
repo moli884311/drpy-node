@@ -9,6 +9,7 @@ const router = useRouter()
 const systemStore = useSystemStore()
 
 const validating = ref(null)
+const customSources = ref({ sites: [], lives: [] })
 const customSourceKeys = ref([])
 const customSourceLoading = ref(null)
 
@@ -58,8 +59,10 @@ onMounted(() => {
 const fetchCustomSources = async () => {
   try {
     const result = await adminApi.getCustomSources()
-    customSourceKeys.value = result.data || []
+    customSources.value = result.data || { sites: [], lives: [] }
+    customSourceKeys.value = (customSources.value.sites || []).map(s => s.key)
   } catch (e) {
+    customSources.value = { sites: [], lives: [] }
     customSourceKeys.value = []
   }
 }

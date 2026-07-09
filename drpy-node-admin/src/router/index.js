@@ -33,6 +33,12 @@ const routes = [
     meta: { title: '解析管理' }
   },
   {
+    path: '/custom-source',
+    name: 'custom-source',
+    component: () => import('../views/CustomSource.vue'),
+    meta: { title: '自定义源' }
+  },
+  {
     path: '/map-manager',
     name: 'map-manager',
     component: () => import('../views/MapManager.vue'),

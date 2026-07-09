@@ -84,12 +84,17 @@ function buildSiteEntry(basename, sourceType, meta, requestHost) {
 export const getCustomSources = async (request, reply) => {
     try {
         if (!await fs.pathExists(CUSTOM_JSON_PATH)) {
-            return reply.send({ success: true, data: [] });
+            return reply.send({ success: true, data: { sites: [], lives: [] } });
         }
         const content = await fs.readFile(CUSTOM_JSON_PATH, 'utf-8');
         const data = JSON.parse(content);
-        const keys = (data.sites || []).map(s => s.key);
-        return reply.send({ success: true, data: keys });
+        return reply.send({
+            success: true,
+            data: {
+                sites: data.sites || [],
+                lives: data.lives || []
+            }
+        });
     } catch (error) {
         request.log.error(error);
         return reply.code(500).send({ success: false, message: error.message });
