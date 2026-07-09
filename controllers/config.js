@@ -1136,31 +1136,26 @@ export default (fastify, options, done) => {
             }
 
             // 生成各类配置数据
-            let parseJSON = {parses: []};
-            let livesJSON = {lives: []};
+            // 始终从原生源生成基础解析器和直播源
+            let parseJSON = await generateParseJSON(options.jxDir, requestHost);
+            let livesJSON = generateLivesJSON(requestHost);
 
+            // 如果 custom_json 中有额外的解析器和直播源，进行覆盖
             if (sub && sub.custom_json) {
                 const customJsonPath = path.join(options.rootDir, sub.custom_json);
                 if (existsSync(customJsonPath)) {
                     try {
                         const customData = JSON.parse(readFileSync(customJsonPath, 'utf-8'));
-                        if (customData.lives && Array.isArray(customData.lives)) {
+                        if (customData.lives && Array.isArray(customData.lives) && customData.lives.length > 0) {
                             livesJSON = {lives: customData.lives};
                         }
-                        if (customData.parses && Array.isArray(customData.parses)) {
+                        if (customData.parses && Array.isArray(customData.parses) && customData.parses.length > 0) {
                             parseJSON = {parses: customData.parses};
                         }
                     } catch (err) {
                         console.error(`读取自定义JSON解析/直播失败:`, err.message);
                     }
                 }
-            }
-
-            if (parseJSON.parses.length === 0) {
-                parseJSON = await generateParseJSON(options.jxDir, requestHost);
-            }
-            if (livesJSON.lives.length === 0) {
-                livesJSON = generateLivesJSON(requestHost);
             }
             const playerJSON = generatePlayerJSON(options.configDir, requestHost);
             // 合并所有配置数据
