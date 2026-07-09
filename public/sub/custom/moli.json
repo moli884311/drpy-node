@@ -2,7 +2,7 @@
   "sites": [
     {
       "key": "drpy2_豆瓣[官]",
-      "name": "🎬沫离影视┃豆瓣┃[官]",
+      "name": "🎬{brand_name}┃豆瓣┃[官]",
       "type": 3,
       "api": "http://8.130.134.173:5705/public/drpy/drpy2.min.js",
       "searchable": 1,
@@ -14,7 +14,7 @@
     },
     {
       "key": "drpyS_腾云驾雾[官]",
-      "name": "☁️沫离影视┃腾云驾雾┃[官]",
+      "name": "☁️{brand_name}┃腾云驾雾┃[官]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/腾云驾雾[官]?pwd=moli",
       "searchable": 2,
@@ -26,7 +26,7 @@
     },
     {
       "key": "drpyS_短剧聚合[沫][短]",
-      "name": "📱沫离影视┃短剧聚合┃[短]",
+      "name": "📱{brand_name}┃短剧聚合┃[短]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/短剧聚合[沫][短]?pwd=moli",
       "searchable": 1,
@@ -40,7 +40,7 @@
     },
     {
       "key": "drpyS_短剧聚合[短]",
-      "name": "📺沫离影视┃短剧聚合┃[短]",
+      "name": "📺{brand_name}┃短剧聚合┃[短]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/短剧聚合[短]?pwd=moli",
       "searchable": 1,
@@ -54,7 +54,7 @@
     },
     {
       "key": "drpyS_七味[优]",
-      "name": "🍜沫离影视┃七味┃[优]",
+      "name": "🍜{brand_name}┃七味┃[优]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/七味[优]?pwd=moli",
       "searchable": 2,
@@ -67,7 +67,7 @@
     },
     {
       "key": "drpyS_星辰影院[优]",
-      "name": "⭐沫离影视┃星辰影院┃[优]",
+      "name": "⭐{brand_name}┃星辰影院┃[优]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/星辰影院[优]?pwd=moli",
       "searchable": 1,
@@ -80,7 +80,7 @@
     },
     {
       "key": "drpyS_永乐视频[优]",
-      "name": "🏮沫离影视┃永乐视频┃[优]",
+      "name": "🏮{brand_name}┃永乐视频┃[优]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/永乐视频[优]?pwd=moli",
       "searchable": 1,
@@ -93,7 +93,7 @@
     },
     {
       "key": "drpyS_泥视频[优]",
-      "name": "🎥沫离影视┃泥视频┃[优]",
+      "name": "🎥{brand_name}┃泥视频┃[优]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/泥视频[优]?pwd=moli",
       "searchable": 1,
@@ -107,7 +107,7 @@
     },
     {
       "key": "drpyS_热播影视[优]",
-      "name": "🔥沫离影视┃热播影视┃[优]",
+      "name": "🔥{brand_name}┃热播影视┃[优]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/热播影视[优]?pwd=moli",
       "searchable": 1,
@@ -121,7 +121,7 @@
     },
     {
       "key": "drpyS_独播库[优]",
-      "name": "📚沫离影视┃独播库┃[优]",
+      "name": "📚{brand_name}┃独播库┃[优]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/独播库[优]?pwd=moli",
       "searchable": 1,
@@ -135,7 +135,7 @@
     },
     {
       "key": "drpyS_粤漫之家[优]",
-      "name": "🎌沫离影视┃粤漫之家┃[优]",
+      "name": "🎌{brand_name}┃粤漫之家┃[优]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/粤漫之家[优]?pwd=moli",
       "searchable": 0,
@@ -149,7 +149,7 @@
     },
     {
       "key": "drpyS_荐片[优]",
-      "name": "🎞️沫离影视┃荐片┃[优]",
+      "name": "🎞️{brand_name}┃荐片┃[优]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/荐片[优]?pwd=moli",
       "searchable": 2,
@@ -162,7 +162,7 @@
     },
     {
       "key": "drpy2_可可影视[优]",
-      "name": "🍫沫离影视┃可可影视┃[优]",
+      "name": "🍫{brand_name}┃可可影视┃[优]",
       "type": 3,
       "api": "http://8.130.134.173:5705/public/drpy/drpy2.min.js",
       "searchable": 2,
@@ -175,7 +175,7 @@
     },
     {
       "key": "drpyS_多多[盘]",
-      "name": "💾沫离影视┃多多┃[盘]",
+      "name": "💾{brand_name}┃多多┃[盘]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/多多[盘]?pwd=moli",
       "searchable": 1,
@@ -187,7 +187,7 @@
     },
     {
       "key": "drpyS_木偶[盘]",
-      "name": "🪵沫离影视┃木偶┃[盘]",
+      "name": "🪵{brand_name}┃木偶┃[盘]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/木偶[盘]?pwd=moli",
       "searchable": 1,
@@ -200,7 +200,7 @@
     },
     {
       "key": "drpyS_欧哥[盘]",
-      "name": "👴沫离影视┃欧哥┃[盘]",
+      "name": "👴{brand_name}┃欧哥┃[盘]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/欧哥[盘]?pwd=moli",
       "searchable": 1,
@@ -212,7 +212,7 @@
     },
     {
       "key": "drpyS_爱看资源[盘]",
-      "name": "👀沫离影视┃爱看资源┃[盘]",
+      "name": "👀{brand_name}┃爱看资源┃[盘]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/爱看资源[盘]?pwd=moli",
       "searchable": 2,
@@ -225,7 +225,7 @@
     },
     {
       "key": "drpyS_至臻[盘]",
-      "name": "💎沫离影视┃至臻┃[盘]",
+      "name": "💎{brand_name}┃至臻┃[盘]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/至臻[盘]?pwd=moli",
       "searchable": 1,
@@ -237,7 +237,7 @@
     },
     {
       "key": "drpyS_动漫豆[漫]",
-      "name": "🎎沫离影视┃动漫豆┃[漫]",
+      "name": "🎎{brand_name}┃动漫豆┃[漫]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/动漫豆[漫]?pwd=moli",
       "searchable": 2,
@@ -250,7 +250,7 @@
     },
     {
       "key": "drpyS_樱漫[漫]",
-      "name": "🌸沫离影视┃樱漫┃[漫]",
+      "name": "🌸{brand_name}┃樱漫┃[漫]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/樱漫[漫]?pwd=moli",
       "searchable": 1,
@@ -262,7 +262,7 @@
     },
     {
       "key": "drpyS_七猫短剧[短]",
-      "name": "🐱沫离影视┃七猫短剧┃[短]",
+      "name": "🐱{brand_name}┃七猫短剧┃[短]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/七猫短剧[短]?pwd=moli",
       "searchable": 1,
@@ -275,7 +275,7 @@
     },
     {
       "key": "drpyS_星芽短剧[短]",
-      "name": "🌱沫离影视┃星芽短剧┃[短]",
+      "name": "🌱{brand_name}┃星芽短剧┃[短]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/星芽短剧[短]?pwd=moli",
       "searchable": 2,
@@ -288,7 +288,7 @@
     },
     {
       "key": "drpyS_牛牛短剧[短]",
-      "name": "🐮沫离影视┃牛牛短剧┃[短]",
+      "name": "🐮{brand_name}┃牛牛短剧┃[短]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/牛牛短剧[短]?pwd=moli",
       "searchable": 2,
@@ -301,7 +301,7 @@
     },
     {
       "key": "drpyS_西饭短剧[短]",
-      "name": "🍚沫离影视┃西饭短剧┃[短]",
+      "name": "🍚{brand_name}┃西饭短剧┃[短]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/西饭短剧[短]?pwd=moli",
       "searchable": 2,
@@ -314,7 +314,7 @@
     },
     {
       "key": "drpyS_360影视[官]",
-      "name": "🔄沫离影视┃360影视┃[官]",
+      "name": "🔄{brand_name}┃360影视┃[官]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/360影视[官]?pwd=moli",
       "searchable": 2,
@@ -327,7 +327,7 @@
     },
     {
       "key": "drpyS_哔哩影视[官]",
-      "name": "🅱️沫离影视┃哔哩影视┃[官]",
+      "name": "🅱️{brand_name}┃哔哩影视┃[官]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/哔哩影视[官]?pwd=moli",
       "searchable": 1,
@@ -339,7 +339,7 @@
     },
     {
       "key": "drpyS_百忙无果[官]",
-      "name": "🤷沫离影视┃百忙无果┃[官]",
+      "name": "🤷{brand_name}┃百忙无果┃[官]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/百忙无果[官]?pwd=moli",
       "searchable": 2,
@@ -351,7 +351,7 @@
     },
     {
       "key": "drpyS_菜狗[官]",
-      "name": "🐶沫离影视┃菜狗┃[官]",
+      "name": "🐶{brand_name}┃菜狗┃[官]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/菜狗[官]?pwd=moli",
       "searchable": 2,
@@ -364,7 +364,7 @@
     },
     {
       "key": "drpyS_TG盘搜[搜]",
-      "name": "📡沫离影视┃TG盘搜┃[搜]",
+      "name": "📡{brand_name}┃TG盘搜┃[搜]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/TG盘搜[搜]?pwd=moli",
       "searchable": 1,
@@ -378,7 +378,7 @@
     },
     {
       "key": "drpyS_兄弟盘[搜]",
-      "name": "👬沫离影视┃兄弟盘┃[搜]",
+      "name": "👬{brand_name}┃兄弟盘┃[搜]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/兄弟盘[搜]?pwd=moli",
       "searchable": 1,
@@ -391,7 +391,7 @@
     },
     {
       "key": "drpyS_百度盘[搜]",
-      "name": "🐻沫离影视┃百度盘┃[搜]",
+      "name": "🐻{brand_name}┃百度盘┃[搜]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/百度盘[搜]?pwd=moli",
       "searchable": 1,
@@ -403,7 +403,7 @@
     },
     {
       "key": "drpyS_网盘资源[搜]",
-      "name": "🌐沫离影视┃网盘资源┃[搜]",
+      "name": "🌐{brand_name}┃网盘资源┃[搜]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/网盘资源[搜]?pwd=moli",
       "searchable": 1,
@@ -416,7 +416,7 @@
     },
     {
       "key": "push_agent",
-      "name": "📨沫离影视┃push_agent┃",
+      "name": "📨{brand_name}┃push_agent┃",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/push_agent?pwd=moli",
       "searchable": 0,
@@ -429,7 +429,7 @@
     },
     {
       "key": "drpyS_兔小贝[儿]",
-      "name": "🐰沫离影视┃兔小贝┃[儿]",
+      "name": "🐰{brand_name}┃兔小贝┃[儿]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/兔小贝[儿]?pwd=moli",
       "searchable": 2,
@@ -443,7 +443,7 @@
     },
     {
       "key": "drpyS_枫林影视",
-      "name": "🍁沫离影视┃枫林影视┃",
+      "name": "🍁{brand_name}┃枫林影视┃",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/枫林影视?pwd=moli",
       "searchable": 2,
@@ -456,7 +456,7 @@
     },
     {
       "key": "drpyS_梨园行[戏]",
-      "name": "🎭沫离影视┃梨园行┃[戏]",
+      "name": "🎭{brand_name}┃梨园行┃[戏]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/梨园行[戏]?pwd=moli",
       "searchable": 1,
@@ -471,7 +471,7 @@
     },
     {
       "key": "drpyS_爱看机器人[虫]",
-      "name": "🤖沫离影视┃爱看机器人┃[虫]",
+      "name": "🤖{brand_name}┃爱看机器人┃[虫]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/爱看机器人[虫]?pwd=moli",
       "searchable": 2,
@@ -483,7 +483,7 @@
     },
     {
       "key": "drpyS_爱看高清",
-      "name": "🔍沫离影视┃爱看高清┃",
+      "name": "🔍{brand_name}┃爱看高清┃",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/爱看高清?pwd=moli",
       "searchable": 2,
@@ -496,7 +496,7 @@
     },
     {
       "key": "drpyS_王子TV",
-      "name": "👑沫离影视┃王子TV┃",
+      "name": "👑{brand_name}┃王子TV┃",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/王子TV?pwd=moli",
       "searchable": 1,
@@ -509,7 +509,7 @@
     },
     {
       "key": "drpyS_贝乐虎[儿]",
-      "name": "🐯沫离影视┃贝乐虎┃[儿]",
+      "name": "🐯{brand_name}┃贝乐虎┃[儿]",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/贝乐虎[儿]?pwd=moli",
       "searchable": 0,
@@ -523,7 +523,7 @@
     },
     {
       "key": "drpyS_飞牛影视",
-      "name": "🐄沫离影视┃飞牛影视┃",
+      "name": "🐄{brand_name}┃飞牛影视┃",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/飞牛影视?pwd=moli",
       "searchable": 1,
@@ -537,7 +537,7 @@
     },
     {
       "key": "drpyS_鬼片之家",
-      "name": "👻沫离影视┃鬼片之家┃",
+      "name": "👻{brand_name}┃鬼片之家┃",
       "type": 4,
       "api": "http://8.130.134.173:5705/api/鬼片之家?pwd=moli",
       "searchable": 2,
@@ -550,7 +550,7 @@
     },
     {
       "key": "catvod_荐片",
-      "name": "📽️沫离影视┃荐片┃",
+      "name": "📽️{brand_name}┃荐片┃",
       "type": 3,
       "api": "http://8.130.134.173:5705/cat/荐片.js?pwd=moli",
       "searchable": 1,
@@ -562,7 +562,7 @@
     },
     {
       "key": "drpy2_爱看机器人[虫]",
-      "name": "⚙️沫离影视┃爱看机器人┃[虫]",
+      "name": "⚙️{brand_name}┃爱看机器人┃[虫]",
       "type": 3,
       "api": "http://8.130.134.173:5705/public/drpy/drpy2.min.js",
       "searchable": 2,
@@ -574,7 +574,7 @@
     },
     {
       "key": "hipy_py_4KVM",
-      "name": "🖥️沫离影视┃4KVM┃",
+      "name": "🖥️{brand_name}┃4KVM┃",
       "type": 3,
       "api": "http://8.130.134.173:5705/py/4KVM.py?pwd=moli",
       "searchable": 1,
@@ -586,7 +586,7 @@
     },
     {
       "key": "hipy_py_看客联盟[AS]",
-      "name": "👥沫离影视┃看客联盟┃[AS]",
+      "name": "👥{brand_name}┃看客联盟┃[AS]",
       "type": 3,
       "api": "http://8.130.134.173:5705/py/AppSk.py?pwd=moli",
       "searchable": 1,
@@ -598,7 +598,7 @@
     },
     {
       "key": "hipy_py_2k动漫[AS]",
-      "name": "🖌️沫离影视┃2k动漫┃[AS]",
+      "name": "🖌️{brand_name}┃2k动漫┃[AS]",
       "type": 3,
       "api": "http://8.130.134.173:5705/py/AppSk.py?pwd=moli",
       "searchable": 1,
@@ -610,7 +610,7 @@
     },
     {
       "key": "hipy_py_一起看[Ayq]",
-      "name": "👁️沫离影视┃一起看┃[Ayq]",
+      "name": "👁️{brand_name}┃一起看┃[Ayq]",
       "type": 3,
       "api": "http://8.130.134.173:5705/py/AppYqk.py?pwd=moli",
       "searchable": 1,
@@ -622,7 +622,7 @@
     },
     {
       "key": "hipy_py_橘子TV[Ayq]",
-      "name": "🍊沫离影视┃橘子TV┃[Ayq]",
+      "name": "🍊{brand_name}┃橘子TV┃[Ayq]",
       "type": 3,
       "api": "http://8.130.134.173:5705/py/AppYqk.py?pwd=moli",
       "searchable": 1,
@@ -634,7 +634,7 @@
     },
     {
       "key": "hipy_py_哇哇APP",
-      "name": "😮沫离影视┃哇哇APP┃",
+      "name": "😮{brand_name}┃哇哇APP┃",
       "type": 3,
       "api": "http://8.130.134.173:5705/py/哇哇APP.py?pwd=moli",
       "searchable": 1,
@@ -646,7 +646,7 @@
     },
     {
       "key": "hipy_py_欣欣影视",
-      "name": "💐沫离影视┃欣欣影视┃",
+      "name": "💐{brand_name}┃欣欣影视┃",
       "type": 3,
       "api": "http://8.130.134.173:5705/py/欣欣影视.py?pwd=moli",
       "searchable": 1,
@@ -658,7 +658,7 @@
     },
     {
       "key": "hipy_py_河马短剧",
-      "name": "🦛沫离影视┃河马短剧┃",
+      "name": "🦛{brand_name}┃河马短剧┃",
       "type": 3,
       "api": "http://8.130.134.173:5705/py/河马短剧.py?pwd=moli",
       "searchable": 1,
@@ -670,7 +670,7 @@
     },
     {
       "key": "hipy_py_爱瓜APP",
-      "name": "🍉沫离影视┃爱瓜APP┃",
+      "name": "🍉{brand_name}┃爱瓜APP┃",
       "type": 3,
       "api": "http://8.130.134.173:5705/py/爱瓜APP.py?pwd=moli",
       "searchable": 1,

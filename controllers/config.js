@@ -1087,7 +1087,7 @@ export default (fastify, options, done) => {
                             siteJSON.sites = customData.sites.map(site => {
                                 const newSite = {...site};
                                 if (newSite.name) {
-                                    newSite.name = newSite.name.replace(/沫离影视/g, brandName);
+                                    newSite.name = newSite.name.replace(/\{brand_name\}/g, brandName);
                                 }
                                 return newSite;
                             });
