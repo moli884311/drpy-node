@@ -3,15 +3,11 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useSystemStore } from '../stores/system'
 import { spiderApi } from '../api/spider'
-import { adminApi } from '../api/admin'
 
 const router = useRouter()
 const systemStore = useSystemStore()
 
 const validating = ref(null)
-const customSources = ref({ sites: [], lives: [] })
-const customSourceKeys = ref([])
-const customSourceLoading = ref(null)
 
 const validationResults = ref({})
 
@@ -53,61 +49,7 @@ const filteredSources = computed(() => {
 
 onMounted(() => {
   systemStore.fetchSources()
-  fetchCustomSources()
 })
-
-const fetchCustomSources = async () => {
-  try {
-    const result = await adminApi.getCustomSources()
-    customSources.value = result.data || { sites: [], lives: [] }
-    customSourceKeys.value = (customSources.value.sites || []).map(s => s.key)
-  } catch (e) {
-    customSources.value = { sites: [], lives: [] }
-    customSourceKeys.value = []
-  }
-}
-
-const isInCustom = (source) => {
-  const baseName = source.name.replace(/\.[^.]+$/, '')
-  return customSourceKeys.value.some(k => {
-    if (source.type === 'js') {
-      return (k.startsWith('drpy2_') || k.startsWith('drpyS_')) && k.includes(baseName)
-    }
-    return k.includes(baseName)
-  })
-}
-
-const addToCustom = async (source) => {
-  customSourceLoading.value = source.path
-  try {
-    const result = await adminApi.addCustomSource(source.name, source.type)
-    if (result.success) {
-      await fetchCustomSources()
-    } else {
-      alert(result.message || '添加失败')
-    }
-  } catch (e) {
-    alert(e.message || '添加失败')
-  } finally {
-    customSourceLoading.value = null
-  }
-}
-
-const removeFromCustom = async (source) => {
-  customSourceLoading.value = source.path
-  try {
-    const result = await adminApi.removeCustomSource(source.name)
-    if (result.success) {
-      await fetchCustomSources()
-    } else {
-      alert(result.message || '移除失败')
-    }
-  } catch (e) {
-    alert(e.message || '移除失败')
-  } finally {
-    customSourceLoading.value = null
-  }
-}
 
 const validateSource = async (source) => {
   validating.value = source.path
@@ -288,31 +230,6 @@ const editSource = (source) => {
 
             <!-- Actions -->
             <div class="flex items-center gap-2">
-              <button
-                v-if="!isInCustom(source)"
-                @click="addToCustom(source)"
-                :disabled="customSourceLoading === source.path"
-                class="p-2 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
-                title="添加到自定义源"
-              >
-                <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-              <button
-                v-else
-                @click="removeFromCustom(source)"
-                :disabled="customSourceLoading === source.path"
-                class="p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-                title="从自定义源移除"
-              >
-                <svg v-if="customSourceLoading === source.path" class="w-4 h-4 animate-spin text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                <svg v-else class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
               <button
                 @click="validateSource(source)"
                 :disabled="validating === source.path"
