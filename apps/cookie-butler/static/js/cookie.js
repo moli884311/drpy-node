@@ -20,7 +20,7 @@ function showToast(message, type = 'success') {
 // 初始化页面
 async function initializePage() {
     // 加载cookie
-    const platforms = ['ali', 'quark', 'quark_token', 'uc', 'uc_token', 'bili', 'yun', 'baidu', 'pikpak', 'p123', 'tianyi'];
+    const platforms = ['ali', 'quark', 'quark_token', 'uc', 'uc_token', 'bili', 'yun', 'baidu', 'pikpak'];
 
     // 绑定按钮事件
     platforms.forEach(platform => {
@@ -64,22 +64,6 @@ async function scanCode(platform) {
     const img = document.getElementById('qrcode');
 
     try {
-        // 123云盘和天翼云盘特殊处理
-        if (platform === 'p123') {
-            const username = prompt('请输入123云盘账号（手机号）');
-            if (!username) return;
-            const password = prompt('请输入123云盘密码');
-            if (!password) return;
-            const loginResult = await qrcode_handler._p123Login(username, password);
-            if (loginResult && loginResult.cookie) {
-                const input = document.getElementById('cookie-res');
-                input.value = loginResult.cookie;
-                showToast('123云盘登录成功，正在入库...');
-                setTimeout(() => storeCookie(), 500);
-            }
-            return;
-        }
-
         // 获取二维码
         const qrData = await qrcode_handler.startScan(platform);
 
@@ -125,22 +109,18 @@ async function scanCode(platform) {
             }
         }, 4000);
 
-        // 120秒后超时
+        // 30秒后超时
         timeoutTimer = setTimeout(() => {
             clearInterval(pollInterval);
             img.src = qrcode_expired;
             showToast('二维码已过期', 'error');
-        }, 120000);
+        }, 30000);
 
     } catch (error) {
         console.log(error)
         if (pollInterval) clearInterval(pollInterval);
         if (timeoutTimer) clearTimeout(timeoutTimer);
         img.src = qrcode_expired;
-        if (platform === 'p123') {
-            showToast(error.message || '登录失败', 'error');
-        } else {
-            showToast(`获取二维码失败：${error.message}`, 'error');
-        }
+        showToast(`获取二维码失败：${error.message}`, 'error');
     }
 }

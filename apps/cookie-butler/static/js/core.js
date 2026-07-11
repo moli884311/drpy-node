@@ -16,8 +16,6 @@ class QRCodeHandler {
     static PLATFORM_YUN = "yun";           //移动
     static PLATFORM_BAIDU = "baidu";    //百度
     static PLATFORM_PIKPAK = "pikpak";  //pikpak
-    static PLATFORM_P123 = "p123";      //123云盘
-    static PLATFORM_TIANYI = "tianyi";  //天翼云盘
 
     // 通用请求头
     static HEADERS = {
@@ -37,8 +35,6 @@ class QRCodeHandler {
             [QRCodeHandler.PLATFORM_YUN]: null,
             [QRCodeHandler.PLATFORM_BAIDU]: null,
             [QRCodeHandler.PLATFORM_PIKPAK]: null,
-            [QRCodeHandler.PLATFORM_P123]: null,
-            [QRCodeHandler.PLATFORM_TIANYI]: null,
         };
         this.Addition = {
             DeviceID: '07b48aaba8a739356ab8107b5e230ad4', RefreshToken: '', AccessToken: ''
@@ -149,10 +145,6 @@ class QRCodeHandler {
                 return await this._startBaiduScan();
             case QRCodeHandler.PLATFORM_PIKPAK:
                 return await this._startPikPakScan();
-            case QRCodeHandler.PLATFORM_P123:
-                return await this._startP123Scan();
-            case QRCodeHandler.PLATFORM_TIANYI:
-                return await this._startTianyiScan();
             default:
                 throw new Error("Unsupported platform");
         }
@@ -178,10 +170,6 @@ class QRCodeHandler {
                 return await this._checkBaiduStatus();
             case QRCodeHandler.PLATFORM_PIKPAK:
                 return await this._checkPikPakStatus();
-            case QRCodeHandler.PLATFORM_P123:
-                return await this._checkP123Status();
-            case QRCodeHandler.PLATFORM_TIANYI:
-                return await this._checkTianyiStatus();
             default:
                 throw new Error("Unsupported platform");
         }
@@ -1291,299 +1279,6 @@ class QRCodeHandler {
             }
         } catch (e) {
             this.platformStates[QRCodeHandler.PLATFORM_YUN] = null;
-            throw new Error(e.message);
-        }
-    }
-
-    async _p123Login(username, password) {
-        try {
-            const res = await axios({
-                url: "/http", method: "POST", data: {
-                    url: "https://login.123pan.com/api/user/sign_in",
-                    method: "POST",
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
-                        'Content-Type': 'application/json',
-                        'App-Version': '43',
-                        'Referer': 'https://login.123pan.com/centerlogin?redirect_url=https%3A%2F%2Fwww.123684.com&source_page=website',
-                    },
-                    data: JSON.stringify({
-                        passport: username,
-                        password: password,
-                        remember: true
-                    })
-                }
-            });
-            const proxyData = res.data;
-            const body = proxyData.data;
-            console.log('[P123 Login] body:', JSON.stringify(body).substring(0, 500));
-            if (body && body.code !== undefined && body.code !== 0) {
-                throw new Error('登录失败：' + (body.message || body.msg || '账号或密码错误'));
-            }
-            const token = (body && body.data && body.data.token) || '';
-            if (token) {
-                return { cookie: token };
-            }
-            throw new Error('登录失败：未获取到token，请检查账号密码');
-        } catch (e) {
-            throw e;
-        }
-    }
-
-    async _startP123Scan() {
-        try {
-            const requestId = QRCodeHandler.generateUUID();
-            const res = await axios({
-                url: "/http", method: "POST", data: {
-                    url: "https://login.123pan.com/api/user/qr-code/generate",
-                    method: "POST",
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Origin': 'https://www.123pan.com',
-                        'Referer': 'https://www.123pan.com/',
-                    },
-                    data: JSON.stringify({
-                        client_id: "381",
-                        v: "1.2",
-                        request_id: requestId
-                    })
-                }
-            });
-            const proxyData = res.data;
-            const body = proxyData.data;
-            console.log('[P123 QR] generate response:', JSON.stringify(body).substring(0, 500));
-            const uniID = (body.data && body.data.uniID) || body.uniID || (body.code === 0 && body.uniID) || '';
-            if (uniID) {
-                this.platformStates[QRCodeHandler.PLATFORM_P123] = { uniID: uniID, code: body.code };
-                const qrUrl = "https://www.123pan.com/wx-app-login.html?env=production&uniID=" + uniID;
-                const qrCode = await this._generateQRCode(qrUrl);
-                return { qrcode: qrCode, status: QRCodeHandler.STATUS_NEW };
-            }
-            throw new Error("获取二维码失败: " + JSON.stringify(body).substring(0, 300));
-        } catch (e) {
-            this.platformStates[QRCodeHandler.PLATFORM_P123] = null;
-            throw e;
-        }
-    }
-
-    async _checkP123Status() {
-        const state = this.platformStates[QRCodeHandler.PLATFORM_P123];
-        if (!state) {
-            return { status: QRCodeHandler.STATUS_EXPIRED };
-        }
-        try {
-            const res = await axios({
-                url: "/http", method: "POST", data: {
-                    url: "https://login.123pan.com/api/user/qr-code/status",
-                    method: "POST",
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Origin': 'https://www.123pan.com',
-                        'Referer': 'https://www.123pan.com/',
-                    },
-                    data: JSON.stringify({ uniID: state.uniID })
-                }
-            });
-            const proxyData = res.data;
-            const body = proxyData.data;
-            console.log('[P123 QR] status response:', JSON.stringify(body).substring(0, 500));
-
-            let cookie = '';
-            const setCookie = proxyData.headers && proxyData.headers['set-cookie'];
-            if (setCookie) {
-                cookie = Array.isArray(setCookie) ? setCookie.map(c => c.split(';')[0]).join('; ') : setCookie.split(';')[0];
-            }
-
-            if (body && body.ok !== false && cookie) {
-                this.platformStates[QRCodeHandler.PLATFORM_P123] = null;
-                return { status: QRCodeHandler.STATUS_CONFIRMED, cookie: cookie };
-            }
-
-            if (body && body.code === 0 && cookie) {
-                this.platformStates[QRCodeHandler.PLATFORM_P123] = null;
-                return { status: QRCodeHandler.STATUS_CONFIRMED, cookie: cookie };
-            }
-
-            if (body && (body.status === 2 || body.status === -1 || body.code === -1)) {
-                this.platformStates[QRCodeHandler.PLATFORM_P123] = null;
-                return { status: QRCodeHandler.STATUS_EXPIRED };
-            }
-
-            return { status: QRCodeHandler.STATUS_NEW };
-        } catch (e) {
-            this.platformStates[QRCodeHandler.PLATFORM_P123] = null;
-            throw new Error(e.message);
-        }
-    }
-
-    async _startTianyiScan() {
-        try {
-            const browserId = "45blfd2bw5d3io19831xeuryk0gdjmh5";
-            const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36';
-            const bodyStr = 'appKey=cloud&version=2.0';
-
-            const loginUrlRes = await axios({
-                url: "/http", method: "POST", data: {
-                    url: "https://cloud.189.cn/api/portal/loginUrl.action?redirectURL=https%3A%2F%2Fcloud.189.cn%2Fweb%2Fredirect.html&defaultSaveName=3&defaultSaveNameCheck=uncheck&browserId=" + browserId,
-                    method: "GET",
-                    headers: { 'User-Agent': ua },
-                }
-            });
-            const proxyBody = loginUrlRes.data;
-            console.log('[Tianyi] loginUrl finalUrl:', proxyBody.finalUrl);
-            const finalUrl = proxyBody.finalUrl || '';
-            const ltMatch = finalUrl.match(/[?&]lt=([^&]+)/);
-            const reqIdMatch = finalUrl.match(/[?&]reqId=([^&]+)/);
-            const Lt = ltMatch ? ltMatch[1] : '';
-            const Reqid = reqIdMatch ? reqIdMatch[1] : '';
-            console.log('[Tianyi] Lt:', Lt, 'Reqid:', Reqid);
-            if (!Lt || !Reqid) throw new Error('获取Lt/Reqid失败, finalUrl:' + finalUrl.substring(0, 200));
-
-            const commonHeaders = {
-                'User-Agent': ua,
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Accept-Encoding': 'gzip',
-                'appKey': 'cloud',
-                'version': '2.0',
-                'lt': Lt,
-                'reqId': Reqid,
-            };
-
-            const step2Res = await axios({
-                url: "/http", method: "POST", data: {
-                    url: "https://open.e.189.cn/api/logbox/oauth2/appConf.do",
-                    method: "POST",
-                    headers: commonHeaders,
-                    data: bodyStr
-                }
-            });
-            const appConfBody = step2Res.data.data;
-            console.log('[Tianyi] appConf response:', JSON.stringify(appConfBody).substring(0, 300));
-            const paramId = (appConfBody.data && appConfBody.data.paramId) || appConfBody.paramId || '';
-            if (!paramId) throw new Error('获取paramId失败, appConf返回:' + JSON.stringify(appConfBody).substring(0, 200));
-
-            const step3Res = await axios({
-                url: "/http", method: "POST", data: {
-                    url: "https://open.e.189.cn/api/logbox/oauth2/getUUID.do",
-                    method: "POST",
-                    headers: commonHeaders,
-                    data: bodyStr
-                }
-            });
-            const uuidBody = step3Res.data.data;
-            console.log('[Tianyi] getUUID response:', JSON.stringify(uuidBody).substring(0, 300));
-            let rawUuid = (uuidBody.data && uuidBody.data.uuid) || uuidBody.uuid || '';
-            let encryuuid = (uuidBody.data && uuidBody.data.encryuuid) || uuidBody.encryuuid || '';
-            let uuid = rawUuid;
-            if (rawUuid.startsWith('http')) {
-                const nuMatch = rawUuid.match(/new_uuid=([^&]+)/);
-                uuid = nuMatch ? nuMatch[1] : rawUuid;
-                console.log('[Tianyi] extracted new_uuid:', uuid);
-            }
-            if (!uuid) throw new Error('获取uuid失败, getUUID返回:' + JSON.stringify(uuidBody).substring(0, 200));
-
-            this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = {
-                paramId: paramId, uuid: uuid, rawUuid: rawUuid, encryuuid: encryuuid, browserId: browserId
-            };
-            const imgUrl = "/tianyi-qr?uuid=" + uuid + "&paramId=" + paramId;
-            return { qrcode: imgUrl, status: QRCodeHandler.STATUS_NEW };
-        } catch (e) {
-            this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
-            throw e;
-        }
-    }
-
-    async _checkTianyiStatus() {
-        const state = this.platformStates[QRCodeHandler.PLATFORM_TIANYI];
-        if (!state) {
-            return { status: QRCodeHandler.STATUS_EXPIRED };
-        }
-        try {
-            const pollUuid = (state.rawUuid && state.rawUuid !== state.uuid) ? state.rawUuid : state.uuid;
-
-            const formData = new URLSearchParams();
-            formData.append('cb_SaveName', '0');
-            formData.append('state', '');
-            formData.append('returnUrl', 'https://cloud.189.cn/api/portal/callbackUnify.action?browserId=' + state.browserId);
-            formData.append('redirectURL', 'https%3A%2F%2Fcloud.189.cn%2Fweb%2Fredirect.html');
-            formData.append('paramId', state.paramId);
-            formData.append('uuid', pollUuid);
-            formData.append('encryuuid', state.encryuuid);
-
-            const res = await axios({
-                url: "/http", method: "POST", data: {
-                    url: "https://open.e.189.cn/api/logbox/oauth2/qrcodeLoginState.do",
-                    method: "POST",
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    data: formData.toString()
-                }
-            });
-            const proxyData = res.data;
-            const resBody = proxyData.data;
-            console.log('[Tianyi] qrcodeLoginState response:', JSON.stringify(resBody).substring(0, 500));
-
-            const inner = resBody.data || resBody;
-            if (inner && inner.redirectUrl) {
-                this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
-                const sessionKey = inner.sessionKey || inner.sSKey || '';
-                let cookie = '';
-                if (sessionKey) {
-                    const tokenRes = await axios({
-                        url: "/http", method: "POST", data: {
-                            url: "https://api.cloud.189.cn/open/oauth2/getAccessTokenBySsKey.action?sessionKey=" + sessionKey,
-                            method: "GET",
-                            headers: {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-                                'Accept': 'application/json',
-                            }
-                        }
-                    });
-                    const tokenBody = tokenRes.data.data;
-                    console.log('[Tianyi] getAccessToken response:', JSON.stringify(tokenBody).substring(0, 300));
-                    if (tokenBody && tokenBody.accessToken) {
-                        cookie = "COOKIE_LOGIN_USER=" + tokenBody.accessToken;
-                    }
-                }
-                if (!cookie) {
-                    const redirectRes = await axios({
-                        url: "/http", method: "POST", data: {
-                            url: inner.redirectUrl,
-                            method: "GET",
-                            headers: {
-                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-                            },
-                            maxRedirects: 0
-                        }
-                    }).catch(e => e && e.response ? { data: e.response.data } : { data: {} });
-                    const setCookie = redirectRes.data && redirectRes.data.headers && redirectRes.data.headers['set-cookie'];
-                    if (setCookie) {
-                        cookie = Array.isArray(setCookie) ? setCookie.map(c => c.split(';')[0]).join('; ') : setCookie.split(';')[0];
-                    }
-                }
-                if (!cookie) {
-                    const cloudCookie = proxyData.headers && proxyData.headers['set-cookie'];
-                    if (cloudCookie) {
-                        cookie = Array.isArray(cloudCookie) ? cloudCookie.map(c => c.split(';')[0]).join('; ') : cloudCookie.split(';')[0];
-                    }
-                }
-                return { status: QRCodeHandler.STATUS_CONFIRMED, cookie: cookie };
-            } else if (inner && (inner.result === 7003 || inner.result === '7003')) {
-                this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
-                return { status: QRCodeHandler.STATUS_EXPIRED };
-            } else if (inner && (inner.result === 7004 || inner.result === '7004')) {
-                this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
-                return { status: QRCodeHandler.STATUS_CANCELED };
-            }
-            return { status: QRCodeHandler.STATUS_NEW };
-        } catch (e) {
-            this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
             throw new Error(e.message);
         }
     }

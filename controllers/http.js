@@ -55,8 +55,8 @@ export default (fastify, options, done) => {
         console.log(`[httpController] url: ${url} | method: ${method} | params: ${JSON.stringify(params)} | data: ${JSON.stringify(data)} | headers: ${JSON.stringify(headers)}`);
         
         try {
-            // 发送HTTP请求 - 当 maxRedirects 为 0 时允许所有状态码
-            const requestConfig = {
+            // 发送HTTP请求
+            const response = await _axios({
                 url,
                 method,
                 headers,
@@ -64,30 +64,23 @@ export default (fastify, options, done) => {
                 maxRedirects,
                 params,
                 data,
-            };
-            if (maxRedirects === 0 || maxRedirects === '0') {
-                requestConfig.validateStatus = () => true;
+            });
+
+            // 处理成功响应
+            if (response.status >= 200 && response.status < 400) {
+                reply.status(response.status).send({
+                    status: response.status,
+                    headers: response.headers,
+                    data: response.data,
+                });
+            } else {
+                // 处理非成功状态码
+                reply.status(response.status).send({
+                    status: 200,
+                    headers: response.headers,
+                    data: '',
+                });
             }
-            const response = await _axios(requestConfig);
-
-            // 获取最终 URL（跟随重定向后的真实 URL）
-            const finalUrl = response.request && response.request.res && response.request.res.responseUrl || url;
-
-            // 重定向相关：打印响应详情用于调试
-            if (maxRedirects === 0 || maxRedirects === '0') {
-                const loc = response.headers['location'] || response.headers['Location'] || '';
-                const dataPreview = typeof response.data === 'string' ? response.data.substring(0, 300) : JSON.stringify(response.data).substring(0, 300);
-                console.log(`[httpController] maxRedirects=0 resp: status=${response.status} location=${loc.substring(0, 200)} content-type=${response.headers['content-type']} data_preview=${dataPreview}`);
-            }
-
-            // 处理响应 - 始终返回 200，将真实状态码放在 body 中
-            const respBody = {
-                status: response.status,
-                headers: response.headers,
-                data: response.data,
-                finalUrl: finalUrl,
-            };
-            reply.status(200).send(respBody);
         } catch (error) {
             // 处理请求错误
             // console.error(error);
@@ -207,43 +200,6 @@ export default (fastify, options, done) => {
                 // 转发请求失败
                 reply.code(500).send({error: `Internal Server Error:${error.message}`});
             }
-        }
-    });
-
-    /**
-     * 天翼云盘QR图片代理接口
-     * GET /tianyi-qr - 代理获取天翼云盘二维码图片
-     */
-    fastify.get('/tianyi-qr', async (request, reply) => {
-        const { uuid, paramId } = request.query;
-        if (!uuid || !paramId) {
-            return reply.status(400).send({error: 'Missing uuid or paramId'});
-        }
-        console.log(`[tianyi-qr] fetching QR for uuid=${uuid} paramId=${paramId}`);
-        try {
-            const response = await _axios({
-                method: 'GET',
-                url: 'https://open.e.189.cn/api/logbox/oauth2/qrcode.do',
-                params: { uuid, paramId },
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-                    'Referer': 'https://open.e.189.cn/',
-                    'Accept': 'image/png,image/*',
-                    'appKey': 'cloud',
-                    'version': '2.0',
-                },
-                responseType: 'arraybuffer',
-                timeout: 10000,
-            });
-            console.log(`[tianyi-qr] got response status=${response.status} content-type=${response.headers['content-type']} size=${response.data.length}`);
-            reply
-                .code(response.status)
-                .header('Content-Type', response.headers['content-type'] || 'image/png')
-                .header('Cache-Control', 'no-cache')
-                .send(response.data);
-        } catch (error) {
-            console.error('[tianyi-qr] error:', error.message);
-            reply.status(500).send({error: 'Failed to fetch QR image'});
         }
     });
 
