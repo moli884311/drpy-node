@@ -16,6 +16,8 @@ class QRCodeHandler {
     static PLATFORM_YUN = "yun";           //移动
     static PLATFORM_BAIDU = "baidu";    //百度
     static PLATFORM_PIKPAK = "pikpak";  //pikpak
+    static PLATFORM_P123 = "p123";      //123云盘
+    static PLATFORM_TIANYI = "tianyi";  //天翼云盘
 
     // 通用请求头
     static HEADERS = {
@@ -35,6 +37,8 @@ class QRCodeHandler {
             [QRCodeHandler.PLATFORM_YUN]: null,
             [QRCodeHandler.PLATFORM_BAIDU]: null,
             [QRCodeHandler.PLATFORM_PIKPAK]: null,
+            [QRCodeHandler.PLATFORM_P123]: null,
+            [QRCodeHandler.PLATFORM_TIANYI]: null,
         };
         this.Addition = {
             DeviceID: '07b48aaba8a739356ab8107b5e230ad4', RefreshToken: '', AccessToken: ''
@@ -145,6 +149,10 @@ class QRCodeHandler {
                 return await this._startBaiduScan();
             case QRCodeHandler.PLATFORM_PIKPAK:
                 return await this._startPikPakScan();
+            case QRCodeHandler.PLATFORM_P123:
+                return await this._startP123Scan();
+            case QRCodeHandler.PLATFORM_TIANYI:
+                return await this._startTianyiScan();
             default:
                 throw new Error("Unsupported platform");
         }
@@ -170,6 +178,10 @@ class QRCodeHandler {
                 return await this._checkBaiduStatus();
             case QRCodeHandler.PLATFORM_PIKPAK:
                 return await this._checkPikPakStatus();
+            case QRCodeHandler.PLATFORM_P123:
+                return await this._checkP123Status();
+            case QRCodeHandler.PLATFORM_TIANYI:
+                return await this._checkTianyiStatus();
             default:
                 throw new Error("Unsupported platform");
         }
@@ -1279,6 +1291,221 @@ class QRCodeHandler {
             }
         } catch (e) {
             this.platformStates[QRCodeHandler.PLATFORM_YUN] = null;
+            throw new Error(e.message);
+        }
+    }
+
+    async _startP123Scan() {
+        try {
+            const requestId = QRCodeHandler.generateUUID();
+            const res = await axios({
+                url: "/http", method: "POST", data: {
+                    url: "https://login.123pan.com/api/user/qr-code/generate",
+                    method: "POST",
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    data: {
+                        client_id: "381",
+                        v: "1.2",
+                        request_id: requestId
+                    }
+                }
+            });
+            const body = res.data.data;
+            const uniID = (body.data && body.data.uniID) || body.uniID || '';
+            if (uniID) {
+                this.platformStates[QRCodeHandler.PLATFORM_P123] = { uniID: uniID };
+                const qrUrl = "https://www.123pan.com/wx-app-login.html?env=production&uniID=" + uniID;
+                const qrCode = await this._generateQRCode(qrUrl);
+                return { qrcode: qrCode, status: QRCodeHandler.STATUS_NEW };
+            } else {
+                throw new Error("Failed to get uniID");
+            }
+        } catch (e) {
+            this.platformStates[QRCodeHandler.PLATFORM_P123] = null;
+            throw e;
+        }
+    }
+
+    async _checkP123Status() {
+        const state = this.platformStates[QRCodeHandler.PLATFORM_P123];
+        if (!state) {
+            return { status: QRCodeHandler.STATUS_EXPIRED };
+        }
+        try {
+            const res = await axios({
+                url: "/http", method: "POST", data: {
+                    url: "https://login.123pan.com/api/user/qr-code/status",
+                    method: "POST",
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    data: { uniID: state.uniID }
+                }
+            });
+            const proxyData = res.data;
+            const body = proxyData.data;
+
+            let cookie = '';
+            const setCookie = proxyData.headers && proxyData.headers['set-cookie'];
+            if (setCookie) {
+                cookie = Array.isArray(setCookie) ? setCookie.map(c => c.split(';')[0]).join('; ') : setCookie.split(';')[0];
+            }
+
+            if (body && body.ok !== false && cookie) {
+                this.platformStates[QRCodeHandler.PLATFORM_P123] = null;
+                return { status: QRCodeHandler.STATUS_CONFIRMED, cookie: cookie };
+            }
+
+            if (body && (body.status === 2 || body.status === -1)) {
+                this.platformStates[QRCodeHandler.PLATFORM_P123] = null;
+                return { status: QRCodeHandler.STATUS_EXPIRED };
+            }
+
+            return { status: QRCodeHandler.STATUS_NEW };
+        } catch (e) {
+            this.platformStates[QRCodeHandler.PLATFORM_P123] = null;
+            throw new Error(e.message);
+        }
+    }
+
+    async _startTianyiScan() {
+        try {
+            const browserId = "45blfd2bw5d3io19831xeuryk0gdjmh5";
+
+            const step2Res = await axios({
+                url: "/http", method: "POST", data: {
+                    url: "https://open.e.189.cn/api/logbox/oauth2/appConf.do",
+                    method: "GET",
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+                        'Accept-Encoding': 'gzip',
+                        'appKey': 'cloud',
+                        'version': '2.0',
+                        'Referer': 'https://open.e.189.cn/',
+                    }
+                }
+            });
+            const appConfBody = step2Res.data.data;
+            const paramId = (appConfBody.data && appConfBody.data.paramId) || appConfBody.paramId || '';
+
+            const step3Res = await axios({
+                url: "/http", method: "POST", data: {
+                    url: "https://open.e.189.cn/api/logbox/oauth2/getUUID.do",
+                    method: "GET",
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+                        'Referer': 'https://open.e.189.cn/',
+                        'appKey': 'cloud',
+                        'version': '2.0',
+                    },
+                    params: { appId: "cloud", paramId: paramId }
+                }
+            });
+            const uuidBody = step3Res.data.data;
+            const uuid = (uuidBody.data && uuidBody.data.uuid) || uuidBody.uuid || '';
+            const encryuuid = (uuidBody.data && uuidBody.data.encryuuid) || uuidBody.encryuuid || '';
+
+            this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = {
+                paramId: paramId, uuid: uuid, encryuuid: encryuuid, browserId: browserId
+            };
+            const qrUrl = "https://open.e.189.cn/api/logbox/oauth2/qrcode.do?uuid=" + uuid + "&paramId=" + paramId;
+            const qrCode = await this._generateQRCode(qrUrl);
+            return { qrcode: qrCode, status: QRCodeHandler.STATUS_NEW };
+        } catch (e) {
+            this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
+            throw e;
+        }
+    }
+
+    async _checkTianyiStatus() {
+        const state = this.platformStates[QRCodeHandler.PLATFORM_TIANYI];
+        if (!state) {
+            return { status: QRCodeHandler.STATUS_EXPIRED };
+        }
+        try {
+            const formData = new URLSearchParams();
+            formData.append('uuid', state.uuid);
+            formData.append('encryuuid', state.encryuuid);
+            formData.append('paramId', state.paramId);
+            formData.append('timeStamp', Date.now().toString());
+            formData.append('isOauth2', 'false');
+            formData.append('clientType', '1');
+            formData.append('appId', 'cloud');
+            formData.append('cb_SaveName', '0');
+            formData.append('state', '');
+            formData.append('returnUrl', 'https://cloud.189.cn/api/portal/callbackUnify.action?browserId=' + state.browserId);
+            formData.append('redirectURL', 'https%3A%2F%2Fcloud.189.cn%2Fweb%2Fredirect.html');
+
+            const res = await axios({
+                url: "/http", method: "POST", data: {
+                    url: "https://open.e.189.cn/api/logbox/oauth2/qrcodeLoginState.do",
+                    method: "POST",
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Referer': 'https://open.e.189.cn/',
+                    },
+                    data: formData.toString()
+                }
+            });
+            const proxyData = res.data;
+            const resBody = proxyData.data;
+            if (resBody && resBody.data) {
+                const data = resBody.data;
+                if (data.redirectUrl) {
+                    this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
+                    const sessionKey = data.sessionKey || '';
+                    let cookie = '';
+                    if (sessionKey) {
+                        const tokenRes = await axios({
+                            url: "/http", method: "POST", data: {
+                                url: "https://api.cloud.189.cn/open/oauth2/getAccessTokenBySsKey.action?sessionKey=" + sessionKey,
+                                method: "GET",
+                                headers: {
+                                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+                                    'Accept': 'application/json',
+                                }
+                            }
+                        });
+                        const tokenBody = tokenRes.data.data;
+                        if (tokenBody && tokenBody.accessToken) {
+                            cookie = "COOKIE_LOGIN_USER=" + tokenBody.accessToken;
+                        }
+                    }
+                    if (!cookie) {
+                        const redirectRes = await axios({
+                            url: "/http", method: "POST", data: {
+                                url: data.redirectUrl,
+                                method: "GET",
+                                headers: {
+                                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+                                },
+                                maxRedirects: 0
+                            }
+                        }).catch(e => e.response);
+                        const setCookie = redirectRes.data && redirectRes.data.headers && redirectRes.data.headers['set-cookie'];
+                        if (setCookie) {
+                            cookie = Array.isArray(setCookie) ? setCookie.map(c => c.split(';')[0]).join('; ') : setCookie.split(';')[0];
+                        }
+                    }
+                    return { status: QRCodeHandler.STATUS_CONFIRMED, cookie: cookie };
+                } else if (data.result === 7003 || data.result === '7003') {
+                    this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
+                    return { status: QRCodeHandler.STATUS_EXPIRED };
+                } else if (data.result === 7004 || data.result === '7004') {
+                    this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
+                    return { status: QRCodeHandler.STATUS_CANCELED };
+                }
+            }
+            return { status: QRCodeHandler.STATUS_NEW };
+        } catch (e) {
+            this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
             throw new Error(e.message);
         }
     }

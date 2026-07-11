@@ -4,15 +4,21 @@ import '../utils/marked.min.js';
 import {validateBasicAuth} from "../utils/api_validate.js";
 import {daemon} from "../utils/daemonManager.js";
 import {toBeijingTime} from "../utils/datetime-format.js"
+import {ENV} from '../utils/env.js';
 
 export default (fastify, options, done) => {
     fastify.get('/', {preHandler: validateBasicAuth}, async (request, reply) => {
         const indexHtmlPath = path.join(options.rootDir, 'public/index.html');
 
         if (existsSync(indexHtmlPath)) {
-            const indexHtml = readFileSync(indexHtmlPath, 'utf-8');
-            const htmlContent = indexHtml.replaceAll('$pwd', process.env.API_PWD || '');
-            reply.type('text/html;charset=utf-8').send(htmlContent);
+            let indexHtml = readFileSync(indexHtmlPath, 'utf-8');
+            const apiPwd = ENV.get('api_pwd', process.env.API_PWD || '');
+            if (apiPwd) {
+                indexHtml = indexHtml.replaceAll('$pwd', apiPwd);
+            } else {
+                indexHtml = indexHtml.replace(/[?&]pwd=\$pwd/g, '');
+            }
+            reply.type('text/html;charset=utf-8').send(indexHtml);
         } else {
             reply.code(404).type('text/html;charset=utf-8').send('<h1>index.html not found</h1>');
         }

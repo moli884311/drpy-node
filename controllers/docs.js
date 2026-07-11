@@ -9,6 +9,7 @@ import {getMimeType} from '../utils/mime-type.js';
 import '../utils/marked.min.js'; // Markdown解析库
 // import { marked } from "marked";
 import {validateBasicAuth} from "../utils/api_validate.js";
+import {ENV} from '../utils/env.js';
 
 /**
  * 文档路由插件
@@ -52,7 +53,13 @@ export default (fastify, options, done) => {
                 // 读取Markdown文件内容
                 const markdownContent = readFileSync(resolvedPath, 'utf8');
                 // 解析Markdown为HTML，并替换$pwd占位符为实际密码
-                const htmlContent = marked.parse(markdownContent).replaceAll('$pwd', process.env.API_PWD || '');
+                const apiPwd = ENV.get('api_pwd', process.env.API_PWD || '');
+                let htmlContent = marked.parse(markdownContent);
+                if (apiPwd) {
+                    htmlContent = htmlContent.replaceAll('$pwd', apiPwd);
+                } else {
+                    htmlContent = htmlContent.replace(/[?&]pwd=\$pwd/g, '');
+                }
 
                 // 返回完整的HTML页面
                 reply.type('text/html').send(`

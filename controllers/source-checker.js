@@ -1,6 +1,7 @@
 import {readFileSync, writeFileSync, existsSync, mkdirSync} from 'fs';
 import path from 'path';
 import {validateBasicAuth} from "../utils/api_validate.js";
+import {ENV} from '../utils/env.js';
 
 /**
  * Source Checker 相关路由
@@ -15,8 +16,9 @@ export default (fastify, options, done) => {
         try {
             const protocol = request.protocol;
             const host = request.headers.host;
-            const pwd = process.env.API_PWD || '';
-            const configUrl = `${protocol}://${host}/config/1?sub=all&healthy=0&pwd=${pwd}`;
+            const apiPwd = ENV.get('api_pwd', process.env.API_PWD || '');
+            const pwdParam = apiPwd ? `&pwd=${apiPwd}` : '';
+            const configUrl = `${protocol}://${host}/config/1?sub=all&healthy=0${pwdParam}`;
 
             return {
                 success: true,
@@ -48,8 +50,9 @@ export default (fastify, options, done) => {
             // 生成本服务器的默认配置地址
             const protocol = request.protocol;
             const host = request.headers.host;
-            const pwd = process.env.API_PWD || '';
-            const serverConfigUrl = `${protocol}://${host}/config/1?sub=all&healthy=0&pwd=${pwd}`;
+            const apiPwd = ENV.get('api_pwd', process.env.API_PWD || '');
+            const pwdParam = apiPwd ? `&pwd=${apiPwd}` : '';
+            const serverConfigUrl = `${protocol}://${host}/config/1?sub=all&healthy=0${pwdParam}`;
 
             // 同源验证：检查报告的配置地址是否与本服务器一致
             const reportConfigUrl = reportData.configUrl.trim();

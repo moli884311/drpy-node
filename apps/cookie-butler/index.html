@@ -27,6 +27,8 @@
         <li><a class="btn-scan" data-platform="yun">移动</a></li>
         <li><a class="btn-scan" data-platform="baidu">百度</a></li>
         <li><a class="btn-scan" data-platform="pikpak">PikPak</a></li>
+        <li><a class="btn-scan" data-platform="p123">123云盘</a></li>
+        <li><a class="btn-scan" data-platform="tianyi">天翼云盘</a></li>
     </ul>
 
     <!-- QR Code -->
@@ -100,6 +102,10 @@
             let save_key = ''
             if (/ali|pikpak/.test(active_key)) {
                 save_key = active_key + '_token'
+            } else if (active_key === 'p123') {
+                save_key = 'pan123_cookie';
+            } else if (active_key === 'tianyi') {
+                save_key = 'cloud_cookie';
             } else {
                 save_key = active_key + '_cookie';
             }
