@@ -203,5 +203,37 @@ export default (fastify, options, done) => {
         }
     });
 
+    /**
+     * 天翼云盘QR图片代理接口
+     * GET /tianyi-qr - 代理获取天翼云盘二维码图片
+     */
+    fastify.get('/tianyi-qr', async (request, reply) => {
+        const { uuid, paramId } = request.query;
+        if (!uuid || !paramId) {
+            return reply.status(400).send({error: 'Missing uuid or paramId'});
+        }
+        try {
+            const response = await _axios({
+                method: 'GET',
+                url: 'https://open.e.189.cn/api/logbox/oauth2/qrcode.do',
+                params: { uuid, paramId },
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+                    'Referer': 'https://open.e.189.cn/',
+                    'Accept': 'image/png,image/*',
+                },
+                responseType: 'arraybuffer',
+                timeout: 10000,
+            });
+            reply
+                .code(response.status)
+                .header('Content-Type', response.headers['content-type'] || 'image/png')
+                .header('Cache-Control', 'no-cache')
+                .send(response.data);
+        } catch (error) {
+            reply.status(500).send({error: 'Failed to fetch QR image'});
+        }
+    });
+
     done();
 };

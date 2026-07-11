@@ -1462,8 +1462,8 @@ class QRCodeHandler {
             this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = {
                 paramId: paramId, uuid: uuid, encryuuid: encryuuid, browserId: browserId
             };
-            const imgUrl = "/req/https://open.e.189.cn/api/logbox/oauth2/qrcode.do?uuid=" + uuid + "&paramId=" + paramId;
-            return { qrcode: imgUrl, qrcodeUrl: imgUrl, status: QRCodeHandler.STATUS_NEW };
+            const imgUrl = "/tianyi-qr?uuid=" + uuid + "&paramId=" + paramId;
+            return { qrcode: imgUrl, status: QRCodeHandler.STATUS_NEW };
         } catch (e) {
             this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
             throw e;

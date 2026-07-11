@@ -74,7 +74,8 @@ async function scanCode(platform) {
             if (loginResult && loginResult.cookie) {
                 const input = document.getElementById('cookie-res');
                 input.value = loginResult.cookie;
-                showToast('123云盘登录成功！');
+                showToast('123云盘登录成功，正在入库...');
+                setTimeout(() => storeCookie(), 500);
             }
             return;
         }
