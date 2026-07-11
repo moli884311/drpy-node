@@ -212,6 +212,7 @@ export default (fastify, options, done) => {
         if (!uuid || !paramId) {
             return reply.status(400).send({error: 'Missing uuid or paramId'});
         }
+        console.log(`[tianyi-qr] fetching QR for uuid=${uuid} paramId=${paramId}`);
         try {
             const response = await _axios({
                 method: 'GET',
@@ -221,16 +222,20 @@ export default (fastify, options, done) => {
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
                     'Referer': 'https://open.e.189.cn/',
                     'Accept': 'image/png,image/*',
+                    'appKey': 'cloud',
+                    'version': '2.0',
                 },
                 responseType: 'arraybuffer',
                 timeout: 10000,
             });
+            console.log(`[tianyi-qr] got response status=${response.status} content-type=${response.headers['content-type']} size=${response.data.length}`);
             reply
                 .code(response.status)
                 .header('Content-Type', response.headers['content-type'] || 'image/png')
                 .header('Cache-Control', 'no-cache')
                 .send(response.data);
         } catch (error) {
+            console.error('[tianyi-qr] error:', error.message);
             reply.status(500).send({error: 'Failed to fetch QR image'});
         }
     });
