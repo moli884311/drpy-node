@@ -55,8 +55,8 @@ export default (fastify, options, done) => {
         console.log(`[httpController] url: ${url} | method: ${method} | params: ${JSON.stringify(params)} | data: ${JSON.stringify(data)} | headers: ${JSON.stringify(headers)}`);
         
         try {
-            // 发送HTTP请求
-            const response = await _axios({
+            // 发送HTTP请求 - 当 maxRedirects 为 0 时允许所有状态码
+            const requestConfig = {
                 url,
                 method,
                 headers,
@@ -64,19 +64,22 @@ export default (fastify, options, done) => {
                 maxRedirects,
                 params,
                 data,
-            });
+            };
+            if (maxRedirects === 0 || maxRedirects === '0') {
+                requestConfig.validateStatus = () => true;
+            }
+            const response = await _axios(requestConfig);
 
-            // 处理成功响应
+            // 处理响应 - 始终返回 200，将真实状态码放在 body 中
             if (response.status >= 200 && response.status < 400) {
-                reply.status(response.status).send({
+                reply.status(200).send({
                     status: response.status,
                     headers: response.headers,
                     data: response.data,
                 });
             } else {
-                // 处理非成功状态码
-                reply.status(response.status).send({
-                    status: 200,
+                reply.status(200).send({
+                    status: response.status,
                     headers: response.headers,
                     data: '',
                 });

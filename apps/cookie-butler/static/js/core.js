@@ -1434,9 +1434,23 @@ class QRCodeHandler {
                     maxRedirects: 0,
                 }
             });
-            const loginHeaders = loginUrlRes.data.headers || {};
-            const locationUrl = loginHeaders['location'] || loginHeaders['Location'] || '';
-            console.log('[Tianyi] loginUrl redirect:', locationUrl);
+            const proxyBody = loginUrlRes.data;
+            const loginHeaders = proxyBody.headers || {};
+            const loginData = proxyBody.data;
+            let locationUrl = loginHeaders['location'] || loginHeaders['Location'] || '';
+            console.log('[Tianyi] loginUrl redirect header:', locationUrl);
+            console.log('[Tianyi] loginUrl response status:', proxyBody.status, 'body preview:', typeof loginData === 'string' ? loginData.substring(0, 500) : JSON.stringify(loginData).substring(0, 500));
+            
+            // 如果 location header 为空，尝试从 body 提取
+            if (!locationUrl && loginData) {
+                const bodyStr = typeof loginData === 'string' ? loginData : JSON.stringify(loginData);
+                const bodyUrlMatch = bodyStr.match(/https?:\/\/[^\s"'<>]*(?:lt=[^&\s"'<>]+)[^\s"'<>]*reqId=[^&\s"'<>]+/i);
+                if (bodyUrlMatch) {
+                    locationUrl = bodyUrlMatch[0];
+                    console.log('[Tianyi] lt/reqId extracted from body:', locationUrl);
+                }
+            }
+            
             const ltMatch = locationUrl.match(/[?&]lt=([^&]+)/);
             const reqIdMatch = locationUrl.match(/[?&]reqId=([^&]+)/);
             const Lt = ltMatch ? ltMatch[1] : '';
