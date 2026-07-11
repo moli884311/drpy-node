@@ -1295,6 +1295,43 @@ class QRCodeHandler {
         }
     }
 
+    async _p123Login(username, password) {
+        try {
+            const res = await axios({
+                url: "/http", method: "POST", data: {
+                    url: "https://login.123pan.com/api/user/sign_in",
+                    method: "POST",
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Origin': 'https://www.123pan.com',
+                        'Referer': 'https://www.123pan.com/login',
+                    },
+                    data: JSON.stringify({
+                        passport: username,
+                        password: password,
+                        remember: true,
+                        captchaEvent: {}
+                    })
+                }
+            });
+            const proxyData = res.data;
+            console.log('[P123 Login] response status:', proxyData.status, 'body:', JSON.stringify(proxyData.data).substring(0, 300));
+            let cookie = '';
+            const setCookie = proxyData.headers && proxyData.headers['set-cookie'];
+            if (setCookie) {
+                cookie = Array.isArray(setCookie) ? setCookie.map(c => c.split(';')[0]).join('; ') : setCookie.split(';')[0];
+            }
+            if (cookie) {
+                return { cookie: cookie };
+            }
+            throw new Error('登录失败：未获取到cookie，请检查账号密码');
+        } catch (e) {
+            throw e;
+        }
+    }
+
     async _startP123Scan() {
         try {
             const requestId = QRCodeHandler.generateUUID();
@@ -1425,9 +1462,8 @@ class QRCodeHandler {
             this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = {
                 paramId: paramId, uuid: uuid, encryuuid: encryuuid, browserId: browserId
             };
-            const qrUrl = "https://cloud.189.cn/web/redirect.html?to=qrcodeLogin&uuid=" + uuid + "&appId=cloud&clientType=1";
-            const qrCode = await this._generateQRCode(qrUrl);
-            return { qrcode: qrCode, status: QRCodeHandler.STATUS_NEW };
+            const imgUrl = "/req/https://open.e.189.cn/api/logbox/oauth2/qrcode.do?uuid=" + uuid + "&paramId=" + paramId;
+            return { qrcode: imgUrl, qrcodeUrl: imgUrl, status: QRCodeHandler.STATUS_NEW };
         } catch (e) {
             this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = null;
             throw e;

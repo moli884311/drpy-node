@@ -64,6 +64,21 @@ async function scanCode(platform) {
     const img = document.getElementById('qrcode');
 
     try {
+        // 123云盘和天翼云盘特殊处理
+        if (platform === 'p123') {
+            const username = prompt('请输入123云盘账号（手机号）');
+            if (!username) return;
+            const password = prompt('请输入123云盘密码');
+            if (!password) return;
+            const loginResult = await qrcode_handler._p123Login(username, password);
+            if (loginResult && loginResult.cookie) {
+                const input = document.getElementById('cookie-res');
+                input.value = loginResult.cookie;
+                showToast('123云盘登录成功！');
+            }
+            return;
+        }
+
         // 获取二维码
         const qrData = await qrcode_handler.startScan(platform);
 
@@ -109,12 +124,12 @@ async function scanCode(platform) {
             }
         }, 4000);
 
-        // 30秒后超时
+        // 120秒后超时
         timeoutTimer = setTimeout(() => {
             clearInterval(pollInterval);
             img.src = qrcode_expired;
             showToast('二维码已过期', 'error');
-        }, 30000);
+        }, 120000);
 
     } catch (error) {
         console.log(error)
