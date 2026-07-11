@@ -70,6 +70,13 @@ export default (fastify, options, done) => {
             }
             const response = await _axios(requestConfig);
 
+            // 重定向相关：打印响应详情用于调试
+            if (maxRedirects === 0 || maxRedirects === '0') {
+                const loc = response.headers['location'] || response.headers['Location'] || '';
+                const dataPreview = typeof response.data === 'string' ? response.data.substring(0, 300) : JSON.stringify(response.data).substring(0, 300);
+                console.log(`[httpController] maxRedirects=0 resp: status=${response.status} location=${loc.substring(0, 200)} content-type=${response.headers['content-type']} data_preview=${dataPreview}`);
+            }
+
             // 处理响应 - 始终返回 200，将真实状态码放在 body 中
             if (response.status >= 200 && response.status < 400) {
                 reply.status(200).send({
