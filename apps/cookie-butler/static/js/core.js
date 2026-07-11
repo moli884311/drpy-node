@@ -1302,35 +1302,29 @@ class QRCodeHandler {
                     url: "https://login.123pan.com/api/user/sign_in",
                     method: "POST",
                     headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Origin': 'https://www.123pan.com',
-                        'Referer': 'https://www.123pan.com/login',
+                        'App-Version': '43',
+                        'Referer': 'https://login.123pan.com/centerlogin?redirect_url=https%3A%2F%2Fwww.123684.com&source_page=website',
                     },
                     data: JSON.stringify({
                         passport: username,
                         password: password,
-                        remember: true,
-                        captchaEvent: {}
+                        remember: true
                     })
                 }
             });
             const proxyData = res.data;
             const body = proxyData.data;
-            console.log('[P123 Login] response status:', proxyData.status, 'body:', JSON.stringify(body).substring(0, 300));
+            console.log('[P123 Login] body:', JSON.stringify(body).substring(0, 500));
             if (body && body.code !== undefined && body.code !== 0) {
                 throw new Error('登录失败：' + (body.message || body.msg || '账号或密码错误'));
             }
-            let cookie = '';
-            const setCookie = proxyData.headers && proxyData.headers['set-cookie'];
-            if (setCookie) {
-                cookie = Array.isArray(setCookie) ? setCookie.map(c => c.split(';')[0]).join('; ') : setCookie.split(';')[0];
+            const token = (body && body.data && body.data.token) || '';
+            if (token) {
+                return { cookie: token };
             }
-            if (cookie) {
-                return { cookie: cookie };
-            }
-            throw new Error('登录失败：未获取到cookie，请检查账号密码');
+            throw new Error('登录失败：未获取到token，请检查账号密码');
         } catch (e) {
             throw e;
         }
@@ -1429,18 +1423,43 @@ class QRCodeHandler {
     async _startTianyiScan() {
         try {
             const browserId = "45blfd2bw5d3io19831xeuryk0gdjmh5";
+            const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36';
+            const bodyStr = 'appKey=cloud&version=2.0';
+
+            const loginUrlRes = await axios({
+                url: "/http", method: "POST", data: {
+                    url: "https://cloud.189.cn/api/portal/loginUrl.action?redirectURL=https%3A%2F%2Fcloud.189.cn%2Fweb%2Fredirect.html&defaultSaveName=3&defaultSaveNameCheck=uncheck&browserId=" + browserId,
+                    method: "GET",
+                    headers: { 'User-Agent': ua },
+                    maxRedirects: 0,
+                }
+            });
+            const loginHeaders = loginUrlRes.data.headers || {};
+            const locationUrl = loginHeaders['location'] || loginHeaders['Location'] || '';
+            console.log('[Tianyi] loginUrl redirect:', locationUrl);
+            const ltMatch = locationUrl.match(/[?&]lt=([^&]+)/);
+            const reqIdMatch = locationUrl.match(/[?&]reqId=([^&]+)/);
+            const Lt = ltMatch ? ltMatch[1] : '';
+            const Reqid = reqIdMatch ? reqIdMatch[1] : '';
+            console.log('[Tianyi] Lt:', Lt, 'Reqid:', Reqid);
+            if (!Lt || !Reqid) throw new Error('获取Lt/Reqid失败, redirect URL:' + locationUrl.substring(0, 200));
+
+            const commonHeaders = {
+                'User-Agent': ua,
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept-Encoding': 'gzip',
+                'appKey': 'cloud',
+                'version': '2.0',
+                'lt': Lt,
+                'reqId': Reqid,
+            };
 
             const step2Res = await axios({
                 url: "/http", method: "POST", data: {
                     url: "https://open.e.189.cn/api/logbox/oauth2/appConf.do",
-                    method: "GET",
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-                        'Accept-Encoding': 'gzip',
-                        'appKey': 'cloud',
-                        'version': '2.0',
-                        'Referer': 'https://open.e.189.cn/',
-                    }
+                    method: "POST",
+                    headers: commonHeaders,
+                    data: bodyStr
                 }
             });
             const appConfBody = step2Res.data.data;
@@ -1451,14 +1470,9 @@ class QRCodeHandler {
             const step3Res = await axios({
                 url: "/http", method: "POST", data: {
                     url: "https://open.e.189.cn/api/logbox/oauth2/getUUID.do",
-                    method: "GET",
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-                        'Referer': 'https://open.e.189.cn/',
-                        'appKey': 'cloud',
-                        'version': '2.0',
-                    },
-                    params: { appId: "cloud", paramId: paramId }
+                    method: "POST",
+                    headers: commonHeaders,
+                    data: bodyStr
                 }
             });
             const uuidBody = step3Res.data.data;
@@ -1485,17 +1499,13 @@ class QRCodeHandler {
         }
         try {
             const formData = new URLSearchParams();
-            formData.append('uuid', state.uuid);
-            formData.append('encryuuid', state.encryuuid);
-            formData.append('paramId', state.paramId);
-            formData.append('timeStamp', Date.now().toString());
-            formData.append('isOauth2', 'false');
-            formData.append('clientType', '1');
-            formData.append('appId', 'cloud');
             formData.append('cb_SaveName', '0');
             formData.append('state', '');
             formData.append('returnUrl', 'https://cloud.189.cn/api/portal/callbackUnify.action?browserId=' + state.browserId);
             formData.append('redirectURL', 'https%3A%2F%2Fcloud.189.cn%2Fweb%2Fredirect.html');
+            formData.append('paramId', state.paramId);
+            formData.append('uuid', state.uuid);
+            formData.append('encryuuid', state.encryuuid);
 
             const res = await axios({
                 url: "/http", method: "POST", data: {
@@ -1504,7 +1514,6 @@ class QRCodeHandler {
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'Referer': 'https://open.e.189.cn/',
                     },
                     data: formData.toString()
                 }

@@ -137,6 +137,10 @@ async function scanCode(platform) {
         if (pollInterval) clearInterval(pollInterval);
         if (timeoutTimer) clearTimeout(timeoutTimer);
         img.src = qrcode_expired;
-        showToast(`获取二维码失败：${error.message}`, 'error');
+        if (platform === 'p123') {
+            showToast(error.message || '登录失败', 'error');
+        } else {
+            showToast(`获取二维码失败：${error.message}`, 'error');
+        }
     }
 }
