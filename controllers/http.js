@@ -70,6 +70,9 @@ export default (fastify, options, done) => {
             }
             const response = await _axios(requestConfig);
 
+            // 获取最终 URL（跟随重定向后的真实 URL）
+            const finalUrl = response.request && response.request.res && response.request.res.responseUrl || url;
+
             // 重定向相关：打印响应详情用于调试
             if (maxRedirects === 0 || maxRedirects === '0') {
                 const loc = response.headers['location'] || response.headers['Location'] || '';
@@ -78,19 +81,13 @@ export default (fastify, options, done) => {
             }
 
             // 处理响应 - 始终返回 200，将真实状态码放在 body 中
-            if (response.status >= 200 && response.status < 400) {
-                reply.status(200).send({
-                    status: response.status,
-                    headers: response.headers,
-                    data: response.data,
-                });
-            } else {
-                reply.status(200).send({
-                    status: response.status,
-                    headers: response.headers,
-                    data: '',
-                });
-            }
+            const respBody = {
+                status: response.status,
+                headers: response.headers,
+                data: response.data,
+                finalUrl: finalUrl,
+            };
+            reply.status(200).send(respBody);
         } catch (error) {
             // 处理请求错误
             // console.error(error);

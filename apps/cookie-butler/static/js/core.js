@@ -1431,32 +1431,17 @@ class QRCodeHandler {
                     url: "https://cloud.189.cn/api/portal/loginUrl.action?redirectURL=https%3A%2F%2Fcloud.189.cn%2Fweb%2Fredirect.html&defaultSaveName=3&defaultSaveNameCheck=uncheck&browserId=" + browserId,
                     method: "GET",
                     headers: { 'User-Agent': ua },
-                    maxRedirects: 0,
                 }
             });
             const proxyBody = loginUrlRes.data;
-            const loginHeaders = proxyBody.headers || {};
-            const loginData = proxyBody.data;
-            let locationUrl = loginHeaders['location'] || loginHeaders['Location'] || '';
-            console.log('[Tianyi] loginUrl redirect header:', locationUrl);
-            console.log('[Tianyi] loginUrl response status:', proxyBody.status, 'body preview:', typeof loginData === 'string' ? loginData.substring(0, 500) : JSON.stringify(loginData).substring(0, 500));
-            
-            // 如果 location header 为空，尝试从 body 提取
-            if (!locationUrl && loginData) {
-                const bodyStr = typeof loginData === 'string' ? loginData : JSON.stringify(loginData);
-                const bodyUrlMatch = bodyStr.match(/https?:\/\/[^\s"'<>]*(?:lt=[^&\s"'<>]+)[^\s"'<>]*reqId=[^&\s"'<>]+/i);
-                if (bodyUrlMatch) {
-                    locationUrl = bodyUrlMatch[0];
-                    console.log('[Tianyi] lt/reqId extracted from body:', locationUrl);
-                }
-            }
-            
-            const ltMatch = locationUrl.match(/[?&]lt=([^&]+)/);
-            const reqIdMatch = locationUrl.match(/[?&]reqId=([^&]+)/);
+            console.log('[Tianyi] loginUrl finalUrl:', proxyBody.finalUrl);
+            const finalUrl = proxyBody.finalUrl || '';
+            const ltMatch = finalUrl.match(/[?&]lt=([^&]+)/);
+            const reqIdMatch = finalUrl.match(/[?&]reqId=([^&]+)/);
             const Lt = ltMatch ? ltMatch[1] : '';
             const Reqid = reqIdMatch ? reqIdMatch[1] : '';
             console.log('[Tianyi] Lt:', Lt, 'Reqid:', Reqid);
-            if (!Lt || !Reqid) throw new Error('获取Lt/Reqid失败, redirect URL:' + locationUrl.substring(0, 200));
+            if (!Lt || !Reqid) throw new Error('获取Lt/Reqid失败, finalUrl:' + finalUrl.substring(0, 200));
 
             const commonHeaders = {
                 'User-Agent': ua,
