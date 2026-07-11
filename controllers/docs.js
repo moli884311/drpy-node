@@ -53,7 +53,7 @@ export default (fastify, options, done) => {
                 // 读取Markdown文件内容
                 const markdownContent = readFileSync(resolvedPath, 'utf8');
                 // 解析Markdown为HTML，并替换$pwd占位符为实际密码
-                const apiPwd = ENV.get('api_pwd', process.env.API_PWD || '');
+                const apiPwd = ENV.get('api_pwd', process.env.API_PWD || 'dzyyds');
                 let htmlContent = marked.parse(markdownContent);
                 if (apiPwd) {
                     htmlContent = htmlContent.replaceAll('$pwd', apiPwd);

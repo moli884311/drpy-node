@@ -16,7 +16,7 @@ export default (fastify, options, done) => {
         try {
             const protocol = request.protocol;
             const host = request.headers.host;
-            const apiPwd = ENV.get('api_pwd', process.env.API_PWD || '');
+            const apiPwd = ENV.get('api_pwd', process.env.API_PWD || 'dzyyds');
             const pwdParam = apiPwd ? `&pwd=${apiPwd}` : '';
             const configUrl = `${protocol}://${host}/config/1?sub=all&healthy=0${pwdParam}`;
 
@@ -50,7 +50,7 @@ export default (fastify, options, done) => {
             // 生成本服务器的默认配置地址
             const protocol = request.protocol;
             const host = request.headers.host;
-            const apiPwd = ENV.get('api_pwd', process.env.API_PWD || '');
+            const apiPwd = ENV.get('api_pwd', process.env.API_PWD || 'dzyyds');
             const pwdParam = apiPwd ? `&pwd=${apiPwd}` : '';
             const serverConfigUrl = `${protocol}://${host}/config/1?sub=all&healthy=0${pwdParam}`;
 

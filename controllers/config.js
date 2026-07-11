@@ -1012,7 +1012,7 @@ export default (fastify, options, done) => {
             // }
             const getFilePath = (cfgPath, rootDir, fileName) => path.join(rootDir, `data/cat/${fileName}`);
             const processContent = (content, cfgPath, requestUrl, requestHost) => {
-                const apiPwd = ENV.get('api_pwd', process.env.API_PWD || '');
+                const apiPwd = ENV.get('api_pwd', process.env.API_PWD || 'dzyyds');
                 const $config_url = requestUrl.replace(cfgPath, `/1?sub=${cat_sub_code}&healthy=1&pwd=${apiPwd}`);
                 return content.replaceAll('$config_url', $config_url).replaceAll('$host', requestHost);
             }

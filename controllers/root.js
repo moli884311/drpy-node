@@ -12,7 +12,7 @@ export default (fastify, options, done) => {
 
         if (existsSync(indexHtmlPath)) {
             let indexHtml = readFileSync(indexHtmlPath, 'utf-8');
-            const apiPwd = ENV.get('api_pwd', process.env.API_PWD || '');
+            const apiPwd = ENV.get('api_pwd', process.env.API_PWD || 'dzyyds');
             if (apiPwd) {
                 indexHtml = indexHtml.replaceAll('$pwd', apiPwd);
             } else {

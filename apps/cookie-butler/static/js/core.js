@@ -1300,12 +1300,14 @@ class QRCodeHandler {
             const requestId = QRCodeHandler.generateUUID();
             const res = await axios({
                 url: "/http", method: "POST", data: {
-                    url: "https://login.123pan.com/api/user/qr-code/generate",
+                    url: "https://www.123pan.com/api/user/qr-code/generate",
                     method: "POST",
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        'Origin': 'https://www.123pan.com',
+                        'Referer': 'https://www.123pan.com/',
                     },
                     data: {
                         client_id: "381",
@@ -1322,7 +1324,7 @@ class QRCodeHandler {
                 const qrCode = await this._generateQRCode(qrUrl);
                 return { qrcode: qrCode, status: QRCodeHandler.STATUS_NEW };
             } else {
-                throw new Error("Failed to get uniID");
+                throw new Error("Failed to get uniID: " + JSON.stringify(body));
             }
         } catch (e) {
             this.platformStates[QRCodeHandler.PLATFORM_P123] = null;
@@ -1338,7 +1340,7 @@ class QRCodeHandler {
         try {
             const res = await axios({
                 url: "/http", method: "POST", data: {
-                    url: "https://login.123pan.com/api/user/qr-code/status",
+                    url: "https://www.123pan.com/api/user/qr-code/status",
                     method: "POST",
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
@@ -1414,7 +1416,7 @@ class QRCodeHandler {
             this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = {
                 paramId: paramId, uuid: uuid, encryuuid: encryuuid, browserId: browserId
             };
-            const qrUrl = "https://open.e.189.cn/api/logbox/oauth2/qrcode.do?uuid=" + uuid + "&paramId=" + paramId;
+            const qrUrl = "https://cloud.189.cn/web/redirect.html?to=qrcodeLogin&uuid=" + uuid + "&appId=cloud&clientType=1";
             const qrCode = await this._generateQRCode(qrUrl);
             return { qrcode: qrCode, status: QRCodeHandler.STATUS_NEW };
         } catch (e) {
