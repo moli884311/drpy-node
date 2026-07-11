@@ -1317,7 +1317,11 @@ class QRCodeHandler {
                 }
             });
             const proxyData = res.data;
-            console.log('[P123 Login] response status:', proxyData.status, 'body:', JSON.stringify(proxyData.data).substring(0, 300));
+            const body = proxyData.data;
+            console.log('[P123 Login] response status:', proxyData.status, 'body:', JSON.stringify(body).substring(0, 300));
+            if (body && body.code !== undefined && body.code !== 0) {
+                throw new Error('登录失败：' + (body.message || body.msg || '账号或密码错误'));
+            }
             let cookie = '';
             const setCookie = proxyData.headers && proxyData.headers['set-cookie'];
             if (setCookie) {
@@ -1440,7 +1444,9 @@ class QRCodeHandler {
                 }
             });
             const appConfBody = step2Res.data.data;
+            console.log('[Tianyi] appConf response:', JSON.stringify(appConfBody).substring(0, 300));
             const paramId = (appConfBody.data && appConfBody.data.paramId) || appConfBody.paramId || '';
+            if (!paramId) throw new Error('获取paramId失败, appConf返回:' + JSON.stringify(appConfBody).substring(0, 200));
 
             const step3Res = await axios({
                 url: "/http", method: "POST", data: {
@@ -1456,8 +1462,10 @@ class QRCodeHandler {
                 }
             });
             const uuidBody = step3Res.data.data;
+            console.log('[Tianyi] getUUID response:', JSON.stringify(uuidBody).substring(0, 300));
             const uuid = (uuidBody.data && uuidBody.data.uuid) || uuidBody.uuid || '';
             const encryuuid = (uuidBody.data && uuidBody.data.encryuuid) || uuidBody.encryuuid || '';
+            if (!uuid) throw new Error('获取uuid失败, getUUID返回:' + JSON.stringify(uuidBody).substring(0, 200));
 
             this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = {
                 paramId: paramId, uuid: uuid, encryuuid: encryuuid, browserId: browserId
