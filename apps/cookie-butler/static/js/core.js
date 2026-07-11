@@ -1476,12 +1476,18 @@ class QRCodeHandler {
             });
             const uuidBody = step3Res.data.data;
             console.log('[Tianyi] getUUID response:', JSON.stringify(uuidBody).substring(0, 300));
-            const uuid = (uuidBody.data && uuidBody.data.uuid) || uuidBody.uuid || '';
-            const encryuuid = (uuidBody.data && uuidBody.data.encryuuid) || uuidBody.encryuuid || '';
+            let rawUuid = (uuidBody.data && uuidBody.data.uuid) || uuidBody.uuid || '';
+            let encryuuid = (uuidBody.data && uuidBody.data.encryuuid) || uuidBody.encryuuid || '';
+            let uuid = rawUuid;
+            if (rawUuid.startsWith('http')) {
+                const nuMatch = rawUuid.match(/new_uuid=([^&]+)/);
+                uuid = nuMatch ? nuMatch[1] : rawUuid;
+                console.log('[Tianyi] extracted new_uuid:', uuid);
+            }
             if (!uuid) throw new Error('获取uuid失败, getUUID返回:' + JSON.stringify(uuidBody).substring(0, 200));
 
             this.platformStates[QRCodeHandler.PLATFORM_TIANYI] = {
-                paramId: paramId, uuid: uuid, encryuuid: encryuuid, browserId: browserId
+                paramId: paramId, uuid: uuid, rawUuid: rawUuid, encryuuid: encryuuid, browserId: browserId
             };
             const imgUrl = "/tianyi-qr?uuid=" + uuid + "&paramId=" + paramId;
             return { qrcode: imgUrl, status: QRCodeHandler.STATUS_NEW };
@@ -1497,13 +1503,15 @@ class QRCodeHandler {
             return { status: QRCodeHandler.STATUS_EXPIRED };
         }
         try {
+            const pollUuid = (state.rawUuid && state.rawUuid !== state.uuid) ? state.rawUuid : state.uuid;
+
             const formData = new URLSearchParams();
             formData.append('cb_SaveName', '0');
             formData.append('state', '');
             formData.append('returnUrl', 'https://cloud.189.cn/api/portal/callbackUnify.action?browserId=' + state.browserId);
             formData.append('redirectURL', 'https%3A%2F%2Fcloud.189.cn%2Fweb%2Fredirect.html');
             formData.append('paramId', state.paramId);
-            formData.append('uuid', state.uuid);
+            formData.append('uuid', pollUuid);
             formData.append('encryuuid', state.encryuuid);
 
             const res = await axios({
